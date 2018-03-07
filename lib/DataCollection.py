@@ -1,142 +1,33 @@
-#   --------------------------------------------------------------------------
-# Copyright (c) <2018> <Jose Luis Sirvent>
-# BE-BI-PM, CERN (European Organization for Nuclear Research)
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
-#   --------------------------------------------------------------------------
-#
-#   Not fully documented
-
-
 from __future__ import unicode_literals
 
-import sys
 import time
 import datetime
 import numpy as np
 import scipy.io as sio
-import matplotlib.pyplot as plt
-import Configuration, DataScan, QButtonsSet, QLogDialog, utils, QTabWidgetPlotting, DataCollection
 
 from ctypes import *
-from picosdk import ps6000
-from PyQt5 import QtGui, QtCore
-from PyQt5.QtWidgets import QVBoxLayout, QHBoxLayout, QLabel, QTabWidget, QWidget, QApplication
+from PyQt5 import QtCore
 
 
-class QMain(QWidget):
+class DataCollection(QtCore.QThread):
 
-    def __init__(self, parent=None):
-        '''
-        Main Widget of the window to display all the tab
-        :param parent:
-        '''
+    notifyState = QtCore.pyqtSignal(str)
+    fileReady = QtCore.pyqtSignal(str)
 
-        super(QMain, self).__init__(parent)
+    def __init__(self, configuration, data_scan, pmt_picoscope, ps_picoscope, buttons_pannel, parent=None):
 
-        # Configuration and Data objects
-        self.configuration = Configuration.Configuration()
-        self.data_scan = DataScan.DataScan()
-        self.ps_picoscope =  ps6000.Device()
-        self.pmt_picoscope =  ps6000.Device()
+        self.configuration = configuration
+        self.buttons_pannel = buttons_pannel
+        self.ps_picoscope = ps_picoscope
+        self.pmt_picoscope =pmt_picoscope
+        self.data_scan = data_scan
 
-        # Application Components
-        self.setWindowTitle('LIU-BWS MD Application')
+        super(DataCollection, self).__init__(parent)
 
-        self.Title = QLabel('LIU-BWS MD Application')
-        f = QtGui.QFont('Arial', 20, QtGui.QFont.Bold)
-        f.setStyleStrategy(QtGui.QFont.PreferAntialias)
-        self.Title.setFont(QtGui.QFont('Arial', 20, QtGui.QFont.Bold))
-        self.Title.setContentsMargins(10, 10, 10, 10)
-
-        self.CERN_logo = QLabel()
-        self.CERN_logo_image = QtGui.QPixmap(utils.resource_path("images/cern_logo.jpg"))
-        self.CERN_logo_image = self.CERN_logo_image.scaledToHeight(60, QtCore.Qt.SmoothTransformation)
-        self.CERN_logo.setPixmap(self.CERN_logo_image)
-
-        self.buttons_pannel = QButtonsSet.QButtonsSet(self)
-        self.LogDialog = QLogDialog.QLogDialog()
-        self.plotting_tabs = QTabWidgetPlotting.QTabWidgetPlotting()
-
-        # Application Layout
-        self.header = QHBoxLayout()
-        self.header.addWidget(self.Title)
-        self.header.addWidget(self.CERN_logo, 0, QtCore.Qt.AlignRight)
-
-        self.mainLayout2 = QHBoxLayout()
-        self.mainLayout2.addWidget(self.buttons_pannel)
-        self.mainLayout2.addWidget(self.plotting_tabs)
-
-        self.mainLayout = QVBoxLayout()
-        self.mainLayout.addLayout(self.header)
-        self.mainLayout.addLayout(self.mainLayout2)
-        self.mainLayout.addWidget(self.LogDialog)
-        self.setLayout(self.mainLayout)
-
-        # Window properties
-        self.setWindowTitle('LIU-BWS MD Application')
-        self.setMinimumSize(1200, 900)
-
-        # Initialization
-        self.buttons_pannel.update_file_list(self.configuration.app_datapath)
-        self.buttons_pannel.set_defaults_at_startup(self.configuration)
-
-        # Actions
-        self.buttons_pannel.scope_connect_btn.clicked.connect(self.connectScope)
-        self.buttons_pannel.dataset_list.itemDoubleClicked.connect(self.load_data_from_dataset)
-        self.buttons_pannel.acquisition_launch_button.clicked.connect(self.acquisitions_thread)
-
-
-    def connectScope(self):
-        #self.LogDialog.add('Connecting scopes...', 'info')
-        status_ps = self.ps_picoscope.open_unit(self.configuration.ps_pico_sn)
-        status_pmt = self.pmt_picoscope.open_unit(self.configuration.pmt_pico_sn)
-
-    def acquisitions_thread(self):
-        self.data_collection = DataCollection.DataCollection(configuration = self.configuration,
-                                                             data_scan=self.data_scan,
-                                                             buttons_pannel=self.buttons_pannel,
-                                                             ps_picoscope=self.ps_picoscope,
-                                                             pmt_picoscope=self.pmt_picoscope)
-
-        self.data_collection.notifyState.connect(self.onState)
-        self.data_collection.fileReady.connect(self.onFileReady)
-        self.data_collection.start()
-
-    def onState(self, state):
-        col = 'green'
-        if state == 'IDLE':
-            col = 'green'
-        if state == 'Trig...':
-            col = 'red'
-        if state == 'Rec...':
-            col = 'yellow'
-        if state == 'Saving...':
-            col = 'yellow'
-        self.update_status_label(text=state, colour = col)
-
-    def onFileReady(self,filename):
-        self.buttons_pannel.update_file_list(self.configuration.app_datapath)
-
-    def acquisitions(self):
-
+    def run(self):
+        print('HELLO FROM BEYOND!')
         while True:
+
             # Scopes configuration:
             # --------------------
             # Data Collection
@@ -154,9 +45,11 @@ class QMain(QWidget):
 
             InRange_PMT = [float(self.buttons_pannel.acquisition_config_pmt_in_start_txt.text()),
                            float(self.buttons_pannel.acquisition_config_pmt_in_end_txt.text())]
+            print('Stuff')
 
             OutRange_PMT = [float(self.buttons_pannel.acquisition_config_pmt_out_start_txt.text()),
                             float(self.buttons_pannel.acquisition_config_pmt_out_end_txt.text())]
+            print('Stuff')
 
             PMT_Ranges = [self.buttons_pannel.scope_config_box_pmt_ch1.currentIndex() + 1,
                           self.buttons_pannel.scope_config_box_pmt_ch2.currentIndex() + 1,
@@ -279,7 +172,7 @@ class QMain(QWidget):
             print(status)
 
             # Wait for trigger
-            self.update_status_label('Trig...', 'red')
+            self.notifyState.emit('Trig...')
             self.pmt_picoscope._collect_event.wait()
             self.ps_picoscope._collect_event.wait()
 
@@ -288,7 +181,7 @@ class QMain(QWidget):
 
             print('e')
 
-            self.update_status_label('Rec...', 'yellow')
+            self.notifyState.emit('Rec...')
             # Recover info into bufffers: OPS
             self.data_scan.PS_Factors =[self.ps_picoscope.m.Ranges.values[
                                         self.ps_picoscope._channel_set[0].range]/self.ps_picoscope.info.max_adc,
@@ -376,12 +269,21 @@ class QMain(QWidget):
 
             # SAVE DATA IN MAT FORMAT
             # TimeStamping on file name
-            self.update_status_label('Saving...', 'yellow')
+
+            self.updateinfodata()
+
+            self.notifyState.emit('Saving...')
             t = time.time()
             st = datetime.datetime.fromtimestamp(t).strftime('%Y-%m-%d_%H-%M-%S')
-            filename = st + '.mat'
+            filename = self.configuration.app_datapath + '/' + st + '.mat'
+
             sio.savemat(filename,
-                        {'PMT_Fs': self.data_scan.PMT_Fs,
+                        {'InfoData_Filter_PRO': self.data_scan.InfoData_Filter_PRO,
+                         'InfoData_HV': self.data_scan.InfoData_HV,
+                         'InfoData_AcqDelay': self.data_scan.InfoData_AcqDelay,
+                         'InfoData_CycleName': self.data_scan.InfoData_CycleName,
+                         'InfoData_CycleStamp': self.data_scan.InfoData_CycleStamp,
+                         'PMT_Fs': self.data_scan.PMT_Fs,
                          'PMT_Factors': self.data_scan.PMT_Factors,
                          'PMT_TimesStart': self.data_scan.PMT_TimesStart,
                          'PMT_PMTA_IN': self.data_scan.PMT_PMTA_IN,
@@ -399,49 +301,25 @@ class QMain(QWidget):
                          'PS_PSB_IN': self.data_scan.PS_PSB_IN,
                          'PS_PSA_OUT': self.data_scan.PS_PSA_OUT,
                          'PS_PSB_OUT': self.data_scan.PS_PSB_OUT},
-                         do_compression = True)
+                        do_compression = True)
 
             #elapsed = time.time() - t
             #print(elapsed)
-            self.update_status_label('IDLE', 'green')
-
-            QtCore.QCoreApplication.processEvents()
+            self.notifyState.emit('IDLE')
+            self.fileReady.emit(filename)
 
             # Check for Loop exit condition
             if self.buttons_pannel.acquisition_mode_single.isChecked():
                 break
 
-
-    def update_status_label(self,text,colour):
-        self.buttons_pannel.acquisition_launch_status.setText(text)
-        self.buttons_pannel.acquisition_launch_status.setStyleSheet('QLabel {background-color:'+colour+'; font: bold 14px; text-align: center;}')
-        self.buttons_pannel.acquisition_launch_status.repaint()
-
-    def load_data_from_dataset(self,item):
-        # self.LogDialog.add('Loading scan data...', 'info')
-        full_file_path = self.configuration.app_datapath + '/' + item.text().split('   ')[1] + '.mat'
-        self.data_scan.load_data_v2(full_file_path)
-        self.plotting_tabs.tab_raw_data.actualise(self.data_scan,self.configuration)
-
-    def closeEvent(self, event):
-        print("Closing the app")
-        self.deleteLater()
-
-def main():
-    app = QApplication(sys.argv)
-    ex = QMain()
-    ex.move(100, 100)
-    ex.show()
-    sys.exit(app.exec_())
-
-
-if __name__ == '__main__':
-    main()
-
-
-
-
-
-
-
-
+    def updateinfodata(self):
+        try:
+            data = sio.loadmat(self.configuration.info_datapath, struct_as_record=False, squeeze_me=True)
+            GenStruct = data['InfoData']
+            self.data_scan.InfoData_Filter_PRO = GenStruct.Filter_PRO
+            self.data_scan.InfoData_HV = GenStruct.HV_PMT
+            self.data_scan.InfoData_AcqDelay = GenStruct.AcqDelay
+            self.data_scan.InfoData_CycleName = GenStruct.cycleName
+            self.data_scan.InfoData_CycleStamp = GenStruct.cycleStamp
+        except:
+            print('Error updating InfoData')

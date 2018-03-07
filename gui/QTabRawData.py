@@ -36,23 +36,23 @@ class QTabRawData(QWidget):
         self.plot.fig.clear()
         self.plot.y_SA_IN = Data.PS_PSA_IN
         self.plot.y_SB_IN = Data.PS_PSB_IN
-        self.plot.x_IN = Data.PS_Time_IN
+        self.plot.x_IN = Data.PS_TimesStart[0] +  np.asarray(range(0,len(Data.PS_PSA_IN))) / Data.PS_Fs
 
         self.plot.y_SA_OUT= Data.PS_PSA_OUT
         self.plot.y_SB_OUT = Data.PS_PSB_OUT
-        self.plot.x_OUT = Data.PS_Time_OUT
+        self.plot.x_OUT = Data.PS_TimesStart[1] + np.asarray(range(0,len(Data.PS_PSA_OUT))) / Data.PS_Fs
 
         self.plot.y_PMTA_IN = Data.PMT_PMTA_IN
         self.plot.y_PMTB_IN = Data.PMT_PMTB_IN
         self.plot.y_PMTC_IN = Data.PMT_PMTC_IN
         self.plot.y_PMTD_IN = Data.PMT_PMTD_IN
-        self.plot.x_PMT_IN = Data.PMT_Time_IN
+        self.plot.x_PMT_IN = Data.PMT_TimesStart[0] + np.asarray(range(0,len(Data.PMT_PMTA_IN))) / Data.PMT_Fs
 
         self.plot.y_PMTA_OUT = Data.PMT_PMTA_OUT
         self.plot.y_PMTB_OUT = Data.PMT_PMTB_OUT
         self.plot.y_PMTC_OUT = Data.PMT_PMTC_OUT
         self.plot.y_PMTD_OUT = Data.PMT_PMTD_OUT
-        self.plot.x_PMT_OUT = Data.PMT_Time_OUT
+        self.plot.x_PMT_OUT = Data.PMT_TimesStart[1] + np.asarray(range(0,len(Data.PMT_PMTA_OUT))) / Data.PMT_Fs
 
         self.plot.compute_initial_figure(Configuration)
         self.plot.draw()

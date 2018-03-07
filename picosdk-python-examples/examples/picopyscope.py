@@ -326,7 +326,7 @@ class PicoPyDeviceWorker(QtCore.QObject):
                     for chan in [c for c in self.picops.channels.keys() if self.picops.channels[c].isEnabled()]:
                         for segment in range(self.picops.segments):
                             index = self.picops.currentDevice.info.num_channels * segment * 2 + chan * 2
-                            self.picops.currentDevice.locate_buffer(self.picops.channels[chan].enum,
+                            self.picops.currentDevice.locate_buffer(self.pico.channels[chan].enum,
                                                                     int(self.picops.samples / self.picops.ratioBin),
                                                                     segment, self.picops.ratioMode,
                                                                     self.picops.ratioBin,

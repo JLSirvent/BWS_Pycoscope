@@ -104,6 +104,7 @@ class QButtonsSet(QWidget):
         self.acquisition_mode_box =  QGroupBox('Acquisition Mode')
         self.acquisition_mode_continuous = QRadioButton('Continuous')
         self.acquisition_mode_single = QRadioButton('Single')
+        self.acquisition_mode_single.setChecked(True)
         self.acquisition_mode_btn_grp = QButtonGroup()
         self.acquisition_mode_btn_grp.addButton(self.acquisition_mode_continuous)
         self.acquisition_mode_btn_grp.addButton(self.acquisition_mode_single)
@@ -239,10 +240,11 @@ class QButtonsSet(QWidget):
         self.dataset_list.clear()
         files = utils.mat_list_from_folder_sorted(path)
         #self.dataset_list.addItems(files)
+        Counter = 1
         for singlefile in files:
             FileSplit = singlefile.split('\\')
-            self.dataset_list.addItem(FileSplit[-1].split('.mat')[0])
-
+            self.dataset_list.addItem('#' + str(Counter) + '   ' + FileSplit[-1].split('.mat')[0])
+            Counter = Counter + 1
 
     def set_defaults_at_startup(self,config):
         self.acquisition_config_pmt_in_start_txt.setText(str(config.def_pmt_in_start))
@@ -257,4 +259,11 @@ class QButtonsSet(QWidget):
         self.acquisition_config_ops_out_end_txt.setText(str(config.def_ops_out_end))
         self.acquisition_config_ops_out_ref_txt.setText(str(config.def_ops_out_ref))
 
+        self.scope_config_box_ops_ch1.setCurrentIndex(config.ps_pico_def_scale)
+        self.scope_config_box_ops_ch2.setCurrentIndex(config.ps_pico_def_scale)
+
+        self.scope_config_box_pmt_ch1.setCurrentIndex(config.pmt_pico_def_scale[0])
+        self.scope_config_box_pmt_ch2.setCurrentIndex(config.pmt_pico_def_scale[1])
+        self.scope_config_box_pmt_ch3.setCurrentIndex(config.pmt_pico_def_scale[2])
+        self.scope_config_box_pmt_ch4.setCurrentIndex(config.pmt_pico_def_scale[3])
 

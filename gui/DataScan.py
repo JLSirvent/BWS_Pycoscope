@@ -40,43 +40,87 @@ class DataScan:
         # InfoData
         self.InfoData_Filter_PRO = 0
         self.InfoData_AcqDelay = 0
+        self.InfoData_HV = 0
         self.InfoData_TimeStamp = ' '
         self.InfoData_CycleStamp = ' '
-        self.InfoData_CycleName = ''
+        self.InfoData_CycleName = ' '
 
         # Photo-Multipliers
+        self.PMT_Fs = 0
+        self.PMT_TimesStart = np.ones(2)
+        self.PMT_Factors = np.ones(4)
+
         self.PMT_PMTA_IN = np.ones(50)
         self.PMT_PMTB_IN = np.ones(50)
         self.PMT_PMTC_IN = np.ones(50)
         self.PMT_PMTD_IN = np.ones(50)
-        self.PMT_TimeBound_IN = np.ones(2)
 
         self.PMT_PMTA_OUT = np.ones(50)
         self.PMT_PMTB_OUT = np.ones(50)
         self.PMT_PMTC_OUT = np.ones(50)
         self.PMT_PMTD_OUT = np.ones(50)
+
         self.PMT_TimeBound_OUT = np.ones(2)
-
-        self.PMT_Fs = 0
+        self.PMT_TimeBound_IN = np.ones(2)
         self.PMT_maxADCCount = 0
-
-        # Position Sensors
-        self.PS_PSA_IN = np.ones(50)
-        self.PS_PSB_IN = np.ones(50)
-        self.PS_TimeBound_IN = np.ones(2)
-
-        self.PS_PSA_OUT = np.ones(50)
-        self.PS_PSB_OUT = np.ones(50)
-        self.PS_TimeBound_OUT = np.ones(2)
 
         self.PMT_Time_IN = np.ones(50)
         self.PMT_Time_OUT = np.ones(50)
 
+        # Position Sensors
+
+        self.PS_Fs = 0
+        self.PS_Factors = np.ones(2)
+        self.PS_TimesStart = np.ones(2)
+
+        self.PS_PSA_IN = np.ones(50)
+        self.PS_PSB_IN = np.ones(50)
+
+        self.PS_PSA_OUT = np.ones(50)
+        self.PS_PSB_OUT = np.ones(50)
+
+        self.PS_TimeBound_IN = np.ones(2)
+        self.PS_TimeBound_OUT = np.ones(2)
+        self.PS_maxADCCount = 0
+
         self.PS_Time_IN = np.ones(50)
         self.PS_Time_OUT = np.ones(50)
 
-        self.PS_Fs = 0
-        self.PS_maxADCCount = 0
+    def load_data_v2(self,path):
+        data = sio.loadmat(path, struct_as_record=False, squeeze_me=True)
+
+        # InfoData
+        self.InfoData_Filter_PRO = data['InfoData_Filter_PRO']
+        self.InfoData_AcqDelay = data['InfoData_AcqDelay']
+        self.InfoData_HV = data['InfoData_HV']
+        self.InfoData_CycleStamp = data['InfoData_CycleStamp']
+        self.InfoData_CycleName = data['InfoData_CycleName']
+
+        # Photo-Multipliers
+        self.PMT_Fs = data['PMT_Fs']
+        self.PMT_TimesStart = data['PMT_TimesStart']
+        self.PMT_Factors = data['PMT_Factors']
+
+        self.PMT_PMTA_IN = data['PMT_PMTA_IN']
+        self.PMT_PMTB_IN = data['PMT_PMTB_IN']
+        self.PMT_PMTC_IN = data['PMT_PMTC_IN']
+        self.PMT_PMTD_IN = data['PMT_PMTD_IN']
+
+        self.PMT_PMTA_OUT = data['PMT_PMTA_OUT']
+        self.PMT_PMTB_OUT = data['PMT_PMTB_OUT']
+        self.PMT_PMTC_OUT = data['PMT_PMTC_OUT']
+        self.PMT_PMTD_OUT = data['PMT_PMTD_OUT']
+
+        # Position Sensors
+        self.PS_Fs = data['PS_Fs']
+        self.PS_Factors = data['PS_Factors']
+        self.PS_TimesStart = data['PS_TimesStart']
+
+        self.PS_PSA_IN = data['PS_PSA_IN']
+        self.PS_PSB_IN = data['PS_PSB_IN']
+
+        self.PS_PSA_OUT = data['PS_PSA_OUT']
+        self.PS_PSB_OUT = data['PS_PSB_OUT']
 
     def load_data(self, path):
         print(path)

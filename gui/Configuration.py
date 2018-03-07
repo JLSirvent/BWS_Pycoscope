@@ -42,8 +42,13 @@ class Configuration:
         config.read(parameter_file)
 
         self.app_datapath = eval(config.get('Application Parameters', 'datapath'))
+        self.info_datapath = eval(config.get('Application Parameters', 'info_datapath'))
 
-        self.sco_ps_pico_sn = eval(config.get('Scopes Config', 'ps_pico_sn'))
+        self.ps_pico_sn = eval(config.get('Scopes Config', 'ps_pico_sn'))
+        self.ps_pico_def_scale = eval(config.get('Scopes Config', 'ps_pico_def_scale'))
+
+        self.pmt_pico_sn = eval(config.get('Scopes Config', 'pmt_pico_sn'))
+        self.pmt_pico_def_scale = eval(config.get('Scopes Config', 'pmt_pico_def_scale'))
 
         self.calib_fork_length = eval(config.get('CalibrationCurve', 'fork_length'))
         self.calib_rotation_offset = eval(config.get('CalibrationCurve', 'rotation_offset'))

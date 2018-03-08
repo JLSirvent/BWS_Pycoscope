@@ -71,3 +71,9 @@ class Configuration:
         self.ops_camelback_threshold =  eval(config.get('OPS processing parameters', 'camelback_threshold'))
         self.ops_Compensate_Eccentricity =  eval(config.get('OPS processing parameters', 'Compensate_Eccentricity'))
         self.ops_low_pass_filter_freq =  eval(config.get('OPS processing parameters', 'low_pass_filter_freq'))
+
+        self.pmt_filterfreq_rawview = eval(config.get('PMT processing parameters', 'filterfreq_rawview'))
+        self.pmt_downsample_rawview = eval(config.get('PMT processing parameters', 'downsample_rawview'))
+
+        self.pmt_filterfreq_profile = eval(config.get('PMT processing parameters', 'filterfreq_profile'))
+        self.pmt_downsample_profile = eval(config.get('PMT processing parameters', 'downsample_profile'))

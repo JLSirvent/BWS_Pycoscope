@@ -7,6 +7,7 @@ import scipy.io as sio
 
 from ctypes import *
 from PyQt5 import QtCore
+import matplotlib.pyplot as plt
 
 
 class DataCollection(QtCore.QThread):
@@ -25,7 +26,6 @@ class DataCollection(QtCore.QThread):
         super(DataCollection, self).__init__(parent)
 
     def run(self):
-        print('HELLO FROM BEYOND!')
         while True:
 
             # Scopes configuration:
@@ -45,11 +45,9 @@ class DataCollection(QtCore.QThread):
 
             InRange_PMT = [float(self.buttons_pannel.acquisition_config_pmt_in_start_txt.text()),
                            float(self.buttons_pannel.acquisition_config_pmt_in_end_txt.text())]
-            print('Stuff')
 
             OutRange_PMT = [float(self.buttons_pannel.acquisition_config_pmt_out_start_txt.text()),
                             float(self.buttons_pannel.acquisition_config_pmt_out_end_txt.text())]
-            print('Stuff')
 
             PMT_Ranges = [self.buttons_pannel.scope_config_box_pmt_ch1.currentIndex() + 1,
                           self.buttons_pannel.scope_config_box_pmt_ch2.currentIndex() + 1,
@@ -84,8 +82,6 @@ class DataCollection(QtCore.QThread):
 
             status_ps_locate_buffer = [0, 0]
 
-            print('a')
-
             # Buffers preparation PMT
             data_pmt = {}
             for i in range(0,4):
@@ -99,7 +95,6 @@ class DataCollection(QtCore.QThread):
                 data_ops[i] = {}
                 data_ops[i]["max"] = np.empty(BuffLen_OPS, dtype=c_int16)
             self.ps_picoscope.release_all_buffers()
-            print('b')
 
             # Channels and data buffers configuration PMT
             for i in range(0,4):
@@ -127,7 +122,7 @@ class DataCollection(QtCore.QThread):
             for i in range(0,2):
                 s_i, state_i = self.ps_picoscope.get_channel_state(channel=i)
                 # Channel Config:
-                state_i.coupling = self.ps_picoscope.m.Couplings.dc1M
+                state_i.coupling = self.ps_picoscope.m.Couplings.dc50
                 state_i.bwlimit = self.ps_picoscope.m.BWLimit.bw_20M
                 if OPS_Ranges[i] == 1:
                     state_i.enabled = False
@@ -144,7 +139,6 @@ class DataCollection(QtCore.QThread):
                                                                                  segment=0,
                                                                                  mode=self.ps_picoscope.m.RatioModes.raw)
                 print(status_ps_locate_buffer[i])
-            print('c')
 
             # Trigger configuration of both scopes
             triggerChannel = self.ps_picoscope.m.TriggerChannels.Aux
@@ -155,21 +149,18 @@ class DataCollection(QtCore.QThread):
             status_trigger = self.ps_picoscope.set_simple_trigger(enabled=True, source=triggerChannel, threshold=thresholdVoltage, direction=direction, waitfor=Wait)
             status_trigger = self.pmt_picoscope.set_simple_trigger(enabled=True, source=triggerChannel, threshold=thresholdVoltage, direction=direction, waitfor=Wait)
 
-            print('d')
 
             # Arming Scopes for acquisition when trigger is generated OPS
             self.pmt_picoscope._collect_cb_type = self.pmt_picoscope._block_ready()
             self.pmt_picoscope._collect_cb_func = self.pmt_picoscope._collect_cb_type(self.pmt_picoscope._collect_cb)
             status = self.pmt_picoscope._run_block(pretrig=0, posttrig=MaxSamples_PMT, timebase=Timebase_PMT, oversample=0, ref_time=None,
                                                   segment=0, ref_cb=self.pmt_picoscope._collect_cb_func, ref_cb_param=None)
-            print(status)
 
             # Arming Scopes for acquisition when trigger is generated PMT
             self.ps_picoscope._collect_cb_type = self.ps_picoscope._block_ready()
             self.ps_picoscope._collect_cb_func = self.ps_picoscope._collect_cb_type(self.ps_picoscope._collect_cb)
             status = self.ps_picoscope._run_block(pretrig=0, posttrig=MaxSamples_OPS, timebase=Timebase_OPS, oversample=0, ref_time=None,
                                                   segment=0, ref_cb=self.ps_picoscope._collect_cb_func, ref_cb_param=None)
-            print(status)
 
             # Wait for trigger
             self.notifyState.emit('Trig...')
@@ -179,7 +170,8 @@ class DataCollection(QtCore.QThread):
             self.pmt_picoscope._collect_event.clear()
             self.ps_picoscope._collect_event.clear()
 
-            print('e')
+            # Start timer after trigger is received
+            t = time.time()
 
             self.notifyState.emit('Rec...')
             # Recover info into bufffers: OPS
@@ -195,31 +187,27 @@ class DataCollection(QtCore.QThread):
             status_read = self.ps_picoscope._get_values(start=Index_Start_In_OPS,
                                                         ref_samples=byref(c_uint32(Samples_In_OPS)),
                                                         ratio=1,
-                                                        mode=self.ps_picoscope.m.RatioModes.none,
+                                                        mode=self.ps_picoscope.m.RatioModes.raw,
                                                         segment=0,
                                                         ref_overflow=byref(overvoltaged))
 
             self.data_scan.PS_PSA_IN = data_ops[0]['max'][0:Samples_In_OPS]
             self.data_scan.PS_PSB_IN = data_ops[1]['max'][0:Samples_In_OPS]
 
-            #self.data_scan.PMT_Time_IN = np.asarray(range(Index_Start_In_OPS,Index_Start_In_OPS+Samples_In_OPS))/Fs_Ops
-
-            print('f')
+            #plt.plot(np.asarray(self.data_scan.PS_PSA_IN))
+            #plt.show()
 
             # OPS Out
             status_read = self.ps_picoscope._get_values(start=Index_Start_Out_OPS,
                                                         ref_samples=byref(c_uint32(Samples_Out_OPS)),
                                                         ratio=1,
-                                                        mode=self.ps_picoscope.m.RatioModes.none,
+                                                        mode=self.ps_picoscope.m.RatioModes.raw,
                                                         segment=0,
                                                         ref_overflow=byref(overvoltaged))
 
             self.data_scan.PS_PSA_OUT = data_ops[0]['max'][0:Samples_Out_OPS]
             self.data_scan.PS_PSB_OUT = data_ops[1]['max'][0:Samples_Out_OPS]
 
-            #self.data_scan.PMT_Time_OUT = np.asarray(range(Index_Start_Out_OPS,Index_Start_Out_OPS+Samples_Out_OPS))/Fs_Ops
-
-            print('g')
 
             # Recover info into bufffers: PMT
             self.data_scan.PMT_Factors = [self.pmt_picoscope.m.Ranges.values[
@@ -242,15 +230,11 @@ class DataCollection(QtCore.QThread):
                                                          segment=0,
                                                          ref_overflow=byref(overvoltaged))
             print(status_read)
-            print('g1')
             self.data_scan.PMT_PMTA_IN = data_pmt[0]['max'][0:Samples_In_PMT]
             self.data_scan.PMT_PMTB_IN = data_pmt[1]['max'][0:Samples_In_PMT]
             self.data_scan.PMT_PMTC_IN = data_pmt[2]['max'][0:Samples_In_PMT]
             self.data_scan.PMT_PMTD_IN = data_pmt[3]['max'][0:Samples_In_PMT]
 
-            #self.data_scan.PMT_Time_IN = np.asarray(range(Index_Start_In_PMT, Index_Start_In_PMT + Samples_In_PMT)) / Fs_Pmt
-
-            print('h')
 
             # PMT Out
             status_read = self.pmt_picoscope._get_values(start=Index_Start_Out_PMT,
@@ -265,15 +249,12 @@ class DataCollection(QtCore.QThread):
             self.data_scan.PMT_PMTC_OUT = data_pmt[2]['max'][0:Samples_Out_PMT]
             self.data_scan.PMT_PMTD_OUT = data_pmt[3]['max'][0:Samples_Out_PMT]
 
-            #self.data_scan.PMT_Time_OUT = np.asarray(range(Index_Start_Out_PMT, Index_Start_Out_PMT + Samples_Out_PMT)) / Fs_Pmt
-
             # SAVE DATA IN MAT FORMAT
             # TimeStamping on file name
 
             self.updateinfodata()
 
             self.notifyState.emit('Saving...')
-            t = time.time()
             st = datetime.datetime.fromtimestamp(t).strftime('%Y-%m-%d_%H-%M-%S')
             filename = self.configuration.app_datapath + '/' + st + '.mat'
 
@@ -301,10 +282,13 @@ class DataCollection(QtCore.QThread):
                          'PS_PSB_IN': self.data_scan.PS_PSB_IN,
                          'PS_PSA_OUT': self.data_scan.PS_PSA_OUT,
                          'PS_PSB_OUT': self.data_scan.PS_PSB_OUT},
-                        do_compression = True)
+                         do_compression = True)
 
-            #elapsed = time.time() - t
-            #print(elapsed)
+            # Print timer value to check how long data recovery and storage need
+             # Note: With data compression TRUE time ~ 6.5seg, without data compresion time ~ 0.5seg
+            elapsed = time.time() - t
+            print('Acquisisitoin elapsed time: ' + str(elapsed) + 'sec.')
+
             self.notifyState.emit('IDLE')
             self.fileReady.emit(filename)
 

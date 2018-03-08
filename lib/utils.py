@@ -1,8 +1,10 @@
 import os
 import glob
 import sys
+import numpy as np
 
 import scipy.signal as signal
+from scipy.interpolate import interp1d
 from numpy import NaN, Inf, arange, isscalar, asarray, array
 
 def resource_path(relative_path):
@@ -39,6 +41,17 @@ def butter_lowpass_filter(data, cutoff, fs, order=5):
     y = signal.filtfilt(b, a, data)
     return y
 
+def resample(data_B, data_A):
+    """
+    Resample data_B ([timeB][dataB]) wrt data_A time ([timeA][dataB])
+    and return resampled_data_B([timeA][resampleddataB]))
+    """
+    data_SB_interp = interp1d(data_B[0], data_B[1], bounds_error=False, fill_value=0)
+    data_B_R = np.ones((2, data_A[0].size))
+    data_B_R[1] = data_SB_interp(data_A[0])
+    data_B_R[0] = np.copy(data_A[0])
+
+    return data_B_R
 
 def peakdet(v, delta, x=None):
     """
@@ -111,3 +124,13 @@ def peakdet(v, delta, x=None):
                 lookformax = True
 
     return array(maxtab), array(mintab)
+
+def process_profile(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample):
+
+    Time = TimeStart + 1e3*(np.arange(0,Amplit.size,1) / SamplingFreq)
+    Amplit = butter_lowpass_filter(Amplit, FilterFreq, SamplingFreq, order=3)
+
+    Amplit_p = Amplit[::Downsample]
+    Time_p = Time[::Downsample]
+
+    return [Time_p, Amplit_p]

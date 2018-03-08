@@ -50,7 +50,10 @@ class QButtonsSet(QWidget):
         self.scope_config_box = QGroupBox('Scopes Config.')
 
         self.scope_connect_btn = QPushButton('Connect')
-        self.scope_connect_status = QLabel('Disconnected')
+        self.scope_connect_status = QLabel('OFF')
+        self.scope_connect_status.setAlignment(QtCore.Qt.AlignCenter)
+        self.scope_connect_status.setStyleSheet('QLabel {background-color: red; font: bold 14px; text-align: center;}')
+        self.scope_connect_btn.setStyleSheet('QPushButton {font: bold 12px;}')
 
         self.scope_config_box_pmt = QGroupBox('PMTs')
         self.scope_config_box_pmt_ch1_lbl = QLabel('CH1')

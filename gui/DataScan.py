@@ -68,7 +68,6 @@ class DataScan:
         self.PMT_Time_OUT = np.ones(50)
 
         # Position Sensors
-
         self.PS_Fs = 0
         self.PS_Factors = np.ones(2)
         self.PS_TimesStart = np.ones(2)
@@ -127,92 +126,45 @@ class DataScan:
         data = sio.loadmat(path, struct_as_record = False, squeeze_me=True)
         GenStruct = data['MeasData']
 
-        # InfoData
-        try:
-            self.InfoData_Filter_PRO = GenStruct.InfoData.Filter_PRO
-        except:
-            print('Error InfoData_Filter_PRO')
-        try:
-            self.InfoData_AcqDelay = GenStruct.InfoData.AcqDelay
-        except:
-            print('Error InfoData_AcqDelay')
-        try:
-            self.InfoData_TimeStamp = GenStruct.InfoData.timeStamp
-        except:
-            print('Error InfoData_TimeStamp')
-        try:
-            self.InfoData_CycleStamp = GenStruct.InfoData.cycleStamp
-        except:
-            print('Error InfoData_CycleStamp')
-        try:
-            self.InfoData_CycleName = GenStruct.InfoData.cycleName
-        except:
-            print('Error InfoData_CycleName')
-
-        # PMT
-        try:
-            self.PMT_PMTA_IN = GenStruct.PMT.PMTA_IN
-        except:
-            print('Error PMT_PMTA_IN')
+        # PhotoMultipliers
+        self.PMT_PMTA_IN = GenStruct.PMT.PMTA_IN * -1.0
+        self.PMT_PMTA_OUT = GenStruct.PMT.PMTA_OUT * -1.0
 
         try:
-            self.PMT_PMTB_IN = GenStruct.PMT.PMTB_IN
+            self.PMT_PMTB_IN = GenStruct.PMT.PMTB_IN * -1.0
+            self.PMT_PMTB_OUT = GenStruct.PMT.PMTB_OUT * -1.0
         except:
-            print('Error PMT_PMTB_IN')
+            pass
+        try:
+            self.PMT_PMTC_IN = GenStruct.PMT.PMTC_IN * -1.0
+            self.PMT_PMTC_OUT = GenStruct.PMT.PMTC_OUT * -1.0
+        except:
+            pass
+        try:
+            self.PMT_PMTD_IN = GenStruct.PMT.PMTD_IN * -1.0
+            self.PMT_PMTD_OUT = GenStruct.PMT.PMTD_OUT * -1.0
+        except:
+            pass
 
-        try:
-            self.PMT_PMTC_IN = GenStruct.PMT.PMTC_IN
-        except:
-            print('Error PMT_PMTC_IN')
-
-        try:
-            self.PMT_PMTD_IN = GenStruct.PMT.PMTD_IN
-        except:
-            print('Error PMT_PMTD_IN')
-
-        self.PMT_TimeBound_IN = GenStruct.PMT.TimeBound_IN
-
-        try:
-            self.PMT_PMTA_OUT = GenStruct.PMT.PMTA_OUT
-        except:
-            print('Error PMT_PMTA_OUT')
-        try:
-            self.PMT_PMTB_OUT = GenStruct.PMT.PMTB_OUT
-        except:
-            print('Error PMT_PMTB_OUT')
-        try:
-            self.PMT_PMTC_OUT = GenStruct.PMT.PMTC_OUT
-        except:
-            print('Error PMT_PMTC_OUT')
-        try:
-            self.PMT_PMTD_OUT = GenStruct.PMT.PMTD_OUT
-        except:
-            print('Error PMT_PMTD_OUT')
-
-        self.PMT_TimeBound_OUT = GenStruct.PMT.TimeBound_OUT
+        self.PMT_TimesStart[0] = 1e3 * (1.0*GenStruct.PMT.TimeBound_IN[0]) / GenStruct.PMT.Fs
+        self.PMT_TimesStart[1] = 1e3 * (1.0*GenStruct.PMT.TimeBound_OUT[0]) / GenStruct.PMT.Fs
 
         self.PMT_Fs = GenStruct.PMT.Fs
-        self.PMT_maxADCCount = GenStruct.PMT.maxADCCount
 
         # Position Sensors
         self.PS_PSA_IN = GenStruct.PS.PSA_IN
         self.PS_PSB_IN = GenStruct.PS.PSB_IN
-        self.PS_TimeBound_IN = GenStruct.PS.TimeBound_IN
 
         self.PS_PSA_OUT = GenStruct.PS.PSA_OUT
         self.PS_PSB_OUT = GenStruct.PS.PSB_OUT
-        self.PS_TimeBound_OUT = GenStruct.PS.TimeBound_OUT
+
+        self.PS_TimesStart[0] = 1e3 * (1.0 * GenStruct.PS.TimeBound_IN[0]) / GenStruct.PS.Fs
+        self.PS_TimesStart[1] = 1e3 * (1.0 * GenStruct.PS.TimeBound_OUT[0]) / GenStruct.PS.Fs
 
         self.PS_Fs = GenStruct.PS.Fs
-        self.PS_maxADCCount = GenStruct.PS.maxADCCount
 
-        # Calculation of Time Vectors (in ms)
-        lengthPMTIN = np.max([len(self.PMT_PMTA_IN),len(self.PMT_PMTB_IN),len(self.PMT_PMTC_IN),len(self.PMT_PMTD_IN)])
-        lengthPMTOUT = np.max([len(self.PMT_PMTA_OUT),len(self.PMT_PMTB_OUT),len(self.PMT_PMTC_OUT),len(self.PMT_PMTD_OUT)])
+        self.PS_Factors = [1, 1]
+        self.PMT_Factors = [1, 1, 1, 1]
 
-        self.PMT_Time_IN =  1e3*(self.PMT_TimeBound_IN[0] + np.asarray(range(0, lengthPMTIN)))/self.PMT_Fs
-        self.PMT_Time_OUT = 1e3*(self.PMT_TimeBound_OUT[0] + np.asarray(range(0, lengthPMTOUT)))/self.PMT_Fs
 
-        self.PS_Time_IN =  1e3*(self.PS_TimeBound_IN[0] + np.asarray(range(0, len(self.PS_PSA_IN))))/self.PS_Fs
-        self.PS_Time_OUT = 1e3*(self.PS_TimeBound_OUT[0] + np.asarray(range(0, len(self.PS_PSA_OUT))))/self.PS_Fs
 

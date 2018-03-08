@@ -48,14 +48,13 @@ def process_position(data, configuration, sampling_frequency, StartTime, showplo
         # Recuperation of processing parameters:
                                                                         #config = configparser.RawConfigParser()
                                                                         #config.read(parameter_file)
-        SlitsperTurn = configuration.ops_slits_per_turn                 # eval(config.get('OPS processing parameters', 'slits_per_turn'))
+        SlitsperTurn = configuration.ops_slits_per_turn                 #eval(config.get('OPS processing parameters', 'slits_per_turn'))
         rdcp = configuration.ops_relative_distance_correction_prameters #eval(config.get('OPS processing parameters', 'relative_distance_correction_prameters'))
         prominence = configuration.ops_prominence                       #eval(config.get('OPS processing parameters', 'prominence'))
         camelback_threshold = configuration.ops_camelback_threshold     #eval(config.get('OPS processing parameters', 'camelback_threshold'))
         OPS_processing_filter_freq = configuration.ops_low_pass_filter_freq #eval(config.get('OPS processing parameters', 'OPS_processing_filter_freq'))
 
         References_Timming = [configuration.def_ops_in_ref, configuration.def_ops_out_ref] #eval(config.get('OPS processing parameters', 'References_Timming'))
-
 
         AngularIncrement = 2 * np.pi / SlitsperTurn
 
@@ -84,6 +83,7 @@ def process_position(data, configuration, sampling_frequency, StartTime, showplo
         pck_dwn = np.array(mintab)[:, 1]
 
         LengthMin = np.minimum(pck_up.size, pck_dwn.size)
+
 
         # ==========================================================================
         # Position processing based on crossing points: Rising edges only
@@ -116,7 +116,7 @@ def process_position(data, configuration, sampling_frequency, StartTime, showplo
             Crosingpos[0, i] = (Threshold - data[int(a)]) * (b - a) / (data[int(b)] - data[int(a)]) + a
 
             # if showplot is True or showplot is 1:
-            A = np.append(A, Threshold);
+            A = np.append(A, Threshold)
 
             # Move to next window:
             IndexDwn = IndexDwn + 1
@@ -157,12 +157,17 @@ def process_position(data, configuration, sampling_frequency, StartTime, showplo
 
         Offset = np.where(Data_Time[0:Data_Time.size - 1] + StartTime > (Rtiming / 1000))[0][0]
 
-        _IndexRef1 = Offset + np.where(RelDistr[Offset:LengthMin - Offset] > rdcp[1])[0]
-        IndexRef1 = _IndexRef1[0]
+        try:
+            _IndexRef1 = Offset + np.where(RelDistr[Offset:LengthMin - Offset] > rdcp[1])[0]
+            IndexRef1 = _IndexRef1[0]
+            Data_Pos = Data_Pos - Data_Pos[IndexRef1]
+        except:
+            IndexRef1 = 0
+            print('Disk Reference not found!')
 
-        Data_Pos = Data_Pos - Data_Pos[IndexRef1]
+
         Data = np.ndarray((2, Data_Pos.size - 1))
-        Data[0] = Data_Time[0:Data_Time.size - 1] + StartTime
+        Data[0] = 1e3*(Data_Time[0:Data_Time.size - 1] + StartTime)
         Data[1] = Data_Pos[0:Data_Pos.size - 1]
 
         # ==========================================================================
@@ -187,12 +192,13 @@ def process_position(data, configuration, sampling_frequency, StartTime, showplo
         # #        plt.plot(1e3*StartTime+1e3*np.arange(1,Distances.size)*1/sampling_frequency + StartTime, RelDistr, '.')
 
         if return_processing is True:
-            return [1e3 * StartTime + 1e3 * np.arange(0, data.size) * 1 / sampling_frequency, data,
+            return [0, 0,
                     1e3 * StartTime + 1e3 * locs_up * 1 / sampling_frequency, pck_up,
                     1e3 * StartTime + 1e3 * locs_dwn * 1 / sampling_frequency, pck_dwn,
                     1e3 * StartTime + 1e3 * Crosingpos[0][0:A.size] * 1 / sampling_frequency, A,
                     threshold_reference / max_data,
-                    1e3 * StartTime + 1e3 * Crosingpos[0][IndexRef1] * (1 / sampling_frequency)]
+                    1e3 * StartTime + 1e3 * Crosingpos[0][IndexRef1] * (1 / sampling_frequency),
+                    Data]
 
         else:
             return Data

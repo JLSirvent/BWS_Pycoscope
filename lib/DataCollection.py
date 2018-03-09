@@ -15,13 +15,15 @@ class DataCollection(QtCore.QThread):
     notifyState = QtCore.pyqtSignal(str)
     fileReady = QtCore.pyqtSignal(str)
 
-    def __init__(self, configuration, data_scan, pmt_picoscope, ps_picoscope, buttons_pannel, parent=None):
+    def __init__(self, configuration, data_scan, data_scan_processed, pmt_picoscope, ps_picoscope, buttons_pannel, plotting_tabs, parent=None):
 
         self.configuration = configuration
         self.buttons_pannel = buttons_pannel
         self.ps_picoscope = ps_picoscope
         self.pmt_picoscope =pmt_picoscope
         self.data_scan = data_scan
+        self.plotting_tabs = plotting_tabs
+        self.data_scan_processed = data_scan_processed
 
         super(DataCollection, self).__init__(parent)
 
@@ -283,15 +285,40 @@ class DataCollection(QtCore.QThread):
                          'PS_PSA_OUT': self.data_scan.PS_PSA_OUT,
                          'PS_PSB_OUT': self.data_scan.PS_PSB_OUT},
                          do_compression = True)
+            # Note: With data compression TRUE time ~ 6.5seg, without data compresion time ~ 0.5seg
 
-            # Print timer value to check how long data recovery and storage need
-             # Note: With data compression TRUE time ~ 6.5seg, without data compresion time ~ 0.5seg
+            self.fileReady.emit(filename)
+
+            # Plotting stuff:
+            if self.buttons_pannel.updater_raw.isChecked() | self.buttons_pannel.updater_motion.isChecked() | self.buttons_pannel.updater_profile.isChecked():
+                self.notifyState.emit('Process..')
+                self.data_scan_processed.process_data(self.data_scan, self.configuration)
+
+                try:
+                    title = self.data_scan.InfoData_CycleStamp + ' ' + self.data_scan.InfoData_CycleName + ' AcqDly: ' + str(
+                        self.data_scan.InfoData_AcqDelay) + 'ms'
+                except:
+                    title = ''
+
+                self.notifyState.emit('Plotting')
+                if self.buttons_pannel.updater_raw.isChecked():
+                    self.plotting_tabs.tab_raw_data.actualise(self.data_scan, self.data_scan_processed, self.configuration)
+
+                if self.buttons_pannel.updater_motion.isChecked():
+                    self.plotting_tabs.tab_motion_data.actualise(self.data_scan_processed)
+
+                if self.buttons_pannel.updater_profile.isChecked():
+                    self.plotting_tabs.tab_processed_profiles.actualise(X_IN=self.data_scan_processed.PS_POSA_IN_Proj,
+                                                                        X_OUT=self.data_scan_processed.PS_POSA_OUT_Proj,
+                                                                        Y_IN=self.data_scan_processed.PMT_IN,
+                                                                        Y_OUT=self.data_scan_processed.PMT_OUT,
+                                                                        stitleinfo=title)
+
+            # Print timer value to check how long data recovery,  storage and plotting (if selected) need
             elapsed = time.time() - t
             print('Acquisisitoin elapsed time: ' + str(elapsed) + 'sec.')
 
             self.notifyState.emit('IDLE')
-            self.fileReady.emit(filename)
-
             # Check for Loop exit condition
             if self.buttons_pannel.acquisition_mode_single.isChecked():
                 break

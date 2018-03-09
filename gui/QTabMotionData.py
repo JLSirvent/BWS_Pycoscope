@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import mplCanvas
 import numpy as np
+import utils
 import matplotlib.pyplot as plt
 
 from PyQt5 import QtCore
@@ -106,8 +107,22 @@ class plot(mplCanvas.mplCanvas):
             except:
                 pass
 
+
+            try:
+                if Scan == 'OUT':
+                    Pos_A[1] = np.pi/2 - Pos_A[1]
+                    Pos_B[1] = np.pi/2 - Pos_B[1]
+
+                Offset = 75
+                Length = len(Pos_A[1])
+                Pos_B_R = utils.resample(Pos_B,Pos_A)
+                Eccentricity = np.subtract(Pos_A[1], Pos_B_R[1]) / 2
+                ax_ecc.plot(Pos_A[1][Offset:Length-Offset], 1e6*Eccentricity[Offset:Length-Offset])
+            except:
+                pass
+
             ax_ecc.set_title('Eccentricity - ' + Scan)
-            ax_ecc.set_xlabel('Time [ms]')
+            ax_ecc.set_xlabel('Position [rad]')
             ax_ecc.set_ylabel('Error [urad]')
 
 

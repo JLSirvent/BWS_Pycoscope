@@ -34,30 +34,30 @@ class QTabRawData(QWidget):
     def actualise(self, Data, Data_processed, Configuration):
 
         self.plot.fig.clear()
-        self.plot.y_SA_IN = Data.PS_PSA_IN * Data.PS_Factors[0]
-        self.plot.y_SB_IN = Data.PS_PSB_IN * Data.PS_Factors[1]
+        self.plot.y_SA_IN = 1e3 * Data.PS_PSA_IN * Data.PS_Factors[0]
+        self.plot.y_SB_IN = 1e3 * Data.PS_PSB_IN * Data.PS_Factors[1]
 
         self.plot.SA_IN_P = Data_processed.PS_POSA_IN_P
         self.plot.SB_IN_P = Data_processed.PS_POSB_IN_P
         self.plot.x_IN = Data.PS_TimesStart[0] + 1e3*(1.0*np.asarray(range(0,len(Data.PS_PSA_IN))) / Data.PS_Fs)
 
-        self.plot.y_SA_OUT = Data.PS_PSA_OUT * Data.PS_Factors[0]
-        self.plot.y_SB_OUT = Data.PS_PSB_OUT * Data.PS_Factors[1]
+        self.plot.y_SA_OUT = 1e3 * Data.PS_PSA_OUT * Data.PS_Factors[0]
+        self.plot.y_SB_OUT = 1e3 * Data.PS_PSB_OUT * Data.PS_Factors[1]
 
         self.plot.SA_OUT_P = Data_processed.PS_POSA_OUT_P
         self.plot.SB_OUT_P = Data_processed.PS_POSB_OUT_P
         self.plot.x_OUT = Data.PS_TimesStart[1] + 1e3*(1.0*np.asarray(range(0,len(Data.PS_PSA_OUT))) / Data.PS_Fs)
 
-        self.plot.y_PMTA_IN = Data.PMT_PMTA_IN * Data.PMT_Factors[0]
-        self.plot.y_PMTB_IN = Data.PMT_PMTB_IN * Data.PMT_Factors[1]
-        self.plot.y_PMTC_IN = Data.PMT_PMTC_IN * Data.PMT_Factors[2]
-        self.plot.y_PMTD_IN = Data.PMT_PMTD_IN * Data.PMT_Factors[3]
+        self.plot.y_PMTA_IN = 1e3 * Data.PMT_PMTA_IN * Data.PMT_Factors[0]
+        self.plot.y_PMTB_IN = 1e3 * Data.PMT_PMTB_IN * Data.PMT_Factors[1]
+        self.plot.y_PMTC_IN = 1e3 * Data.PMT_PMTC_IN * Data.PMT_Factors[2]
+        self.plot.y_PMTD_IN = 1e3 * Data.PMT_PMTD_IN * Data.PMT_Factors[3]
         self.plot.x_PMT_IN = Data.PMT_TimesStart[0] + 1e3*(1.0*np.asarray(range(0,len(Data.PMT_PMTA_IN))) / Data.PMT_Fs)
 
-        self.plot.y_PMTA_OUT = Data.PMT_PMTA_OUT * Data.PMT_Factors[0]
-        self.plot.y_PMTB_OUT = Data.PMT_PMTB_OUT * Data.PMT_Factors[1]
-        self.plot.y_PMTC_OUT = Data.PMT_PMTC_OUT * Data.PMT_Factors[2]
-        self.plot.y_PMTD_OUT = Data.PMT_PMTD_OUT * Data.PMT_Factors[3]
+        self.plot.y_PMTA_OUT = 1e3 * Data.PMT_PMTA_OUT * Data.PMT_Factors[0]
+        self.plot.y_PMTB_OUT = 1e3 * Data.PMT_PMTB_OUT * Data.PMT_Factors[1]
+        self.plot.y_PMTC_OUT = 1e3 * Data.PMT_PMTC_OUT * Data.PMT_Factors[2]
+        self.plot.y_PMTD_OUT = 1e3 * Data.PMT_PMTD_OUT * Data.PMT_Factors[3]
         self.plot.x_PMT_OUT = Data.PMT_TimesStart[1] + 1e3*(1.0*np.asarray(range(0,len(Data.PMT_PMTA_OUT))) / Data.PMT_Fs)
 
         self.plot.compute_initial_figure(Configuration)
@@ -115,7 +115,7 @@ class plot(mplCanvas.mplCanvas):
             ax1.plot(refX, refY, '.', markersize=5, color='#f93eed')
             ax1.set_title('OPS - SA IN')
             ax1.set_xlabel('Time [ms]')
-            ax1.set_ylabel('Amplitude [a.u]')
+            ax1.set_ylabel('Amplitude [mV]')
         except:
             pass
 
@@ -131,7 +131,7 @@ class plot(mplCanvas.mplCanvas):
             ax2.plot(refX, refY, '.', markersize=5, color='#f93eed')
             ax2.set_title('OPS - SA OUT')
             ax2.set_xlabel('Time [ms]')
-            ax2.set_ylabel('Amplitude [a.u]')
+            ax2.set_ylabel('Amplitude [mV]')
         except:
             pass
 
@@ -147,7 +147,7 @@ class plot(mplCanvas.mplCanvas):
             ax3.plot(refX, refY, '.', markersize=5, color='#f93eed')
             ax3.set_title('OPS - SB IN')
             ax3.set_xlabel('Time [ms]')
-            ax3.set_ylabel('Amplitude [a.u]')
+            ax3.set_ylabel('Amplitude [mV]')
         except:
             pass
 
@@ -163,7 +163,7 @@ class plot(mplCanvas.mplCanvas):
             ax4.plot(refX, refY, '.', markersize=5, color='#f93eed')
             ax4.set_title('OPS - SB OUT')
             ax4.set_xlabel('Time [ms]')
-            ax4.set_ylabel('Amplitude [a.u]')
+            ax4.set_ylabel('Amplitude [mV]')
         except:
             pass
 

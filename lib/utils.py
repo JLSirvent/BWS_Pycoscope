@@ -134,3 +134,9 @@ def process_profile(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample):
     Time_p = Time[::Downsample]
 
     return [Time_p, Amplit_p]
+
+def do_projection(Fork_Length, Rotation_Offset, Fork_Phase, Angular_Position):
+
+    Projection = Rotation_Offset - Fork_Length * np.cos(np.pi - Angular_Position + Fork_Phase)
+
+    return Projection

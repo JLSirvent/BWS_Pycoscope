@@ -31,12 +31,13 @@ class QtabProcessedProfiles(QWidget):
 
         self.setLayout(main_layout)
 
-    def actualise(self, X_IN, X_OUT, Y_IN, Y_OUT):
+    def actualise(self, X_IN, X_OUT, Y_IN, Y_OUT, stitleinfo):
         self.plot.fig.clear()
         self.plot.X_IN  = X_IN
         self.plot.Y_IN  = Y_IN
         self.plot.X_OUT = X_OUT
         self.plot.Y_OUT = Y_OUT
+        self.plot.stitleinfo = stitleinfo
         self.plot.compute_initial_figure()
         self.plot.draw()
 
@@ -48,7 +49,7 @@ class plot(mplCanvas.mplCanvas):
         self.Y_IN = [np.ones(4), np.ones(200), np.ones(200)]
         self.X_OUT = [np.ones(200),np.ones(200)]
         self.Y_OUT = [np.ones(4), np.ones(200), np.ones(200)]
-
+        self.stitleinfo = ' '
         super(plot, self).__init__(parent, width, height, dpi)
 
     def compute_initial_figure(self):
@@ -93,7 +94,7 @@ class plot(mplCanvas.mplCanvas):
                     pass
 
             ax.legend(loc='upper right')
-            ax.set_title('Beam profile - ' + s_title)
+            ax.set_title('Beam profile - ' + s_title + '\n' + self.stitleinfo)
             ax.set_xlabel('Position [mm]')
             ax.set_ylabel('Amplitude [a.u]')
 

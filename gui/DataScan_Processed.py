@@ -135,5 +135,18 @@ class DataScan_Processed:
         try:
             self.PS_POSA_IN_Proj = utils.resample(self.PS_POSA_IN,self.PMT_IN[1])
             self.PS_POSA_OUT_Proj = utils.resample(self.PS_POSA_OUT,self.PMT_OUT[1])
+
+            self.PS_POSA_IN_Proj[1] = utils.do_projection(Fork_Length=configuration.calib_fork_length,
+                                                          Rotation_Offset=configuration.calib_rotation_offset,
+                                                          Fork_Phase=configuration.calib_fork_phase,
+                                                          Angular_Position=self.PS_POSA_IN_Proj[1])
+
+            self.PS_POSA_OUT_Proj[1] = utils.do_projection(Fork_Length=configuration.calib_fork_length,
+                                                           Rotation_Offset=configuration.calib_rotation_offset,
+                                                           Fork_Phase=configuration.calib_fork_phase,
+                                                           Angular_Position=self.PS_POSA_OUT_Proj[1])
+
         except:
             print('Error Interpolating')
+
+

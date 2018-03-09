@@ -126,6 +126,20 @@ class DataScan:
         data = sio.loadmat(path, struct_as_record = False, squeeze_me=True)
         GenStruct = data['MeasData']
 
+        try:
+            self.InfoData_Filter_PRO = data['InfoData_Filter_PRO']
+            self.InfoData_AcqDelay = data['InfoData_AcqDelay']
+            self.InfoData_HV = data['InfoData_HV']
+            self.InfoData_CycleStamp = data['InfoData_CycleStamp']
+            self.InfoData_CycleName = data['InfoData_CycleName']
+        except:
+            self.InfoData_Filter_PRO = 0
+            self.InfoData_AcqDelay = 0
+            self.InfoData_HV = 0
+            self.InfoData_TimeStamp = ' '
+            self.InfoData_CycleStamp = ' '
+            self.InfoData_CycleName = ' '
+
         # PhotoMultipliers
         self.PMT_PMTA_IN = GenStruct.PMT.PMTA_IN * -1.0
         self.PMT_PMTA_OUT = GenStruct.PMT.PMTA_OUT * -1.0

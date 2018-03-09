@@ -139,11 +139,13 @@ class QMain(QWidget):
 
 
     def acquisitions_thread(self):
-        self.data_collection = DataCollection.DataCollection(configuration = self.configuration,
+        self.data_collection = DataCollection.DataCollection(configuration=self.configuration,
                                                              data_scan=self.data_scan,
                                                              buttons_pannel=self.buttons_pannel,
                                                              ps_picoscope=self.ps_picoscope,
-                                                             pmt_picoscope=self.pmt_picoscope)
+                                                             pmt_picoscope=self.pmt_picoscope,
+                                                             plotting_tabs=self.plotting_tabs,
+                                                             data_scan_processed=self.data_scan_processed)
 
         self.data_collection.notifyState.connect(self.onState)
         self.data_collection.fileReady.connect(self.onFileReady)
@@ -155,10 +157,9 @@ class QMain(QWidget):
             col = 'green'
         if state == 'Trig...':
             col = 'red'
-        if state == 'Rec...':
+        if state == 'Rec...' or state == 'Saving...' or state == 'Process..' or state == 'Plotting':
             col = 'yellow'
-        if state == 'Saving...':
-            col = 'yellow'
+
         self.update_status_label(text=state, colour = col)
 
     def onFileReady(self,filename):
@@ -172,15 +173,30 @@ class QMain(QWidget):
     def load_data_from_dataset(self,item):
         # self.LogDialog.add('Loading scan data...', 'info')
         full_file_path = self.configuration.app_datapath + '/' + item.text().split('   ')[1] + '.mat'
-        self.data_scan.load_data(full_file_path)
-        self.data_scan_processed.process_data(self.data_scan,self.configuration)
-        #self.plotting_tabs.tab_raw_data.actualise(self.data_scan,self.data_scan_processed,self.configuration)
-        #self.plotting_tabs.tab_motion_data.actualise(self.data_scan_processed)
 
-        self.plotting_tabs.tab_processed_profiles.actualise(X_IN = self.data_scan_processed.PS_POSA_IN_Proj,
-                                                            X_OUT = self.data_scan_processed.PS_POSA_OUT_Proj,
-                                                            Y_IN = self.data_scan_processed.PMT_IN,
-                                                            Y_OUT = self.data_scan_processed.PMT_OUT)
+        self.data_scan.load_data(full_file_path)
+
+        try:
+            title = self.data_scan.InfoData_CycleStamp + ' ' + self.data_scan.InfoData_CycleName + ' AcqDly: ' + str(self.data_scan.InfoData_AcqDelay) + 'ms'
+        except:
+            title = ''
+
+        if self.buttons_pannel.updater_raw.isChecked() | self.buttons_pannel.updater_motion.isChecked() | self.buttons_pannel.updater_profile.isChecked():
+
+            self.data_scan_processed.process_data(self.data_scan, self.configuration)
+
+            if self.buttons_pannel.updater_raw.isChecked():
+                self.plotting_tabs.tab_raw_data.actualise(self.data_scan,self.data_scan_processed,self.configuration)
+
+            if self.buttons_pannel.updater_motion.isChecked():
+                self.plotting_tabs.tab_motion_data.actualise(self.data_scan_processed)
+
+            if self.buttons_pannel.updater_profile.isChecked():
+                self.plotting_tabs.tab_processed_profiles.actualise(X_IN = self.data_scan_processed.PS_POSA_IN_Proj,
+                                                                    X_OUT = self.data_scan_processed.PS_POSA_OUT_Proj,
+                                                                    Y_IN = self.data_scan_processed.PMT_IN,
+                                                                    Y_OUT = self.data_scan_processed.PMT_OUT,
+                                                                    stitleinfo=title)
 
     def updateconfiguration(self):
         self.configuration.def_ops_in_start = float(self.buttons_pannel.acquisition_config_ops_in_start_txt.text())

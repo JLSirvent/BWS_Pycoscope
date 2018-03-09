@@ -25,8 +25,8 @@
 
 
 import sys
-sys.path.append('D:/MD_Scripts/BWS_Pycoscope/gui')
-sys.path.append('D:/MD_Scripts/BWS_Pycoscope/lib')
+sys.path.append('../gui')
+sys.path.append('../lib')
 from PyQt5.QtWidgets import QApplication
 import QMain
 

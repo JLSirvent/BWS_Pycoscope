@@ -117,6 +117,11 @@ class QButtonsSet(QWidget):
         self.acquisition_launch_status.setAlignment(QtCore.Qt.AlignCenter)
         self.acquisition_launch_status.setStyleSheet('QLabel {background-color: green; font: bold 14px; text-align: center;}')
 
+        self.updater_box = QGroupBox('Updater')
+        self.updater_profile = QCheckBox('Profile')
+        self.updater_raw = QCheckBox('Raw')
+        self.updater_motion = QCheckBox('Motion')
+
         self.dataset_box = QGroupBox('Available Dataset')
         self.dataset_list = QListWidget()
 
@@ -219,6 +224,13 @@ class QButtonsSet(QWidget):
         self.acquisition_launch_box_layout.addLayout(self.acquisition_launch_btn_layout)
         self.acquisition_launch_box.setLayout(self.acquisition_launch_box_layout)
 
+        # Updater
+        self.updater_box_layout = QHBoxLayout(self)
+        self.updater_box_layout.addWidget(self.updater_profile)
+        self.updater_box_layout.addWidget(self.updater_raw)
+        self.updater_box_layout.addWidget(self.updater_motion)
+        self.updater_box.setLayout(self.updater_box_layout)
+
         # FileList
         self.dataset_box_layout = QVBoxLayout(self)
         self.dataset_box_layout.addWidget(self.dataset_list)
@@ -229,6 +241,7 @@ class QButtonsSet(QWidget):
         main_layout.addWidget(self.scope_config_box)
         main_layout.addWidget(self.acquisition_config_box)
         main_layout.addWidget(self.acquisition_launch_box)
+        main_layout.addWidget(self.updater_box)
         main_layout.addWidget(self.dataset_box)
         self.setLayout(main_layout)
         self.setFixedWidth(250)

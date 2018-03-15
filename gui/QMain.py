@@ -195,7 +195,7 @@ class QMain(QWidget):
         # self.LogDialog.add('Loading scan data...', 'info')
         full_file_path = self.configuration.app_datapath + '/' + item.text().split('   ')[1] + '.mat'
 
-        self.data_scan.load_data_v2(full_file_path)
+        self.data_scan.load_data(full_file_path)
 
         try:
             title = self.data_scan.InfoData_CycleStamp + ' ' + self.data_scan.InfoData_CycleName + ' AcqDly: ' + str(self.data_scan.InfoData_AcqDelay) + 'ms'
@@ -220,17 +220,17 @@ class QMain(QWidget):
                                                                     stitleinfo=title)
 
     def updateconfiguration(self):
-        self.configuration.def_ops_in_start = float(self.tab_buttons_pannel.buttons_pannel.acquisition_config_ops_in_start_txt.text())
-        self.configuration.def_ops_in_end = float(self.tab_buttons_pannel.buttons_pannel.acquisition_config_ops_in_end_txt.text())
-        self.configuration.def_ops_in_ref = float(self.tab_buttons_pannel.buttons_pannel.acquisition_config_ops_in_ref_txt.text())
-        self.configuration.def_ops_out_start = float(self.tab_buttons_pannel.buttons_pannel.acquisition_config_ops_out_start_txt.text())
-        self.configuration.def_ops_out_end = float(self.tab_buttons_pannel.buttons_pannel.acquisition_config_ops_out_end_txt.text())
-        self.configuration.def_ops_out_ref = float(self.tab_buttons_pannel.buttons_pannel.acquisition_config_ops_out_ref_txt.text())
+        self.configuration.def_ops_in_start = float(self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_ops_in_start_txt.text())
+        self.configuration.def_ops_in_end = float(self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_ops_in_end_txt.text())
+        self.configuration.def_ops_in_ref = float(self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_ops_in_ref_txt.text())
+        self.configuration.def_ops_out_start = float(self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_ops_out_start_txt.text())
+        self.configuration.def_ops_out_end = float(self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_ops_out_end_txt.text())
+        self.configuration.def_ops_out_ref = float(self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_ops_out_ref_txt.text())
 
-        self.configuration.def_pmt_in_start = float(self.tab_buttons_pannel.buttons_pannel.acquisition_config_pmt_in_start_txt.text())
-        self.configuration.def_pmt_in_end = float(self.tab_buttons_pannel.buttons_pannel.acquisition_config_pmt_in_end_txt.text())
-        self.configuration.def_pmt_out_start = float(self.tab_buttons_pannel.buttons_pannel.acquisition_config_pmt_out_start_txt.text())
-        self.configuration.def_pmt_out_end = float(self.tab_buttons_pannel.buttons_pannel.acquisition_config_pmt_out_end_txt.text())
+        self.configuration.def_pmt_in_start = float(self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_pmt_in_start_txt.text())
+        self.configuration.def_pmt_in_end = float(self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_pmt_in_end_txt.text())
+        self.configuration.def_pmt_out_start = float(self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_pmt_out_start_txt.text())
+        self.configuration.def_pmt_out_end = float(self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_pmt_out_end_txt.text())
 
     def closeEvent(self, event):
         print("Closing the app")

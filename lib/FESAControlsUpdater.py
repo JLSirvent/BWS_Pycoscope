@@ -96,7 +96,7 @@ class FESAControlsUpdater(QtCore.QThread):
             try:
                 data2 = sio.loadmat(path2, struct_as_record=False, squeeze_me=True)
             except:
-                print('File2 reading error')
+                print('Fileb reading error')
 
             self.tab_buttons_pannel.buttons_pannel.cycle_selector_last_ts.setText('Last CycleStamp:\n' + data2['LTIM_CYCLESTAMP'])
 

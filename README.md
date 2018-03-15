@@ -4,6 +4,6 @@
 
 This is a user application build with PyQT and requires [Picoscope SDK drivers](https://www.picotech.com/downloads) and [Python driver bindings](https://github.com/picotech/picosdk-python-examples)
 
-For more info go to the [complete documentation (GitHub wiki)](https://github.com/JLSirvent/BWS-Pycoscope/wiki)
+For more info go to the [complete documentation (GitHub wiki)](https://github.com/JLSirvent/BWS_Pycoscope/wiki)
 
 <img src="images/Screenshot.png" width="800" align=center>

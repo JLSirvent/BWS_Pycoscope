@@ -4,6 +4,7 @@ import time
 import datetime
 import numpy as np
 import scipy.io as sio
+import FESAControlsUpdater
 
 from ctypes import *
 from PyQt5 import QtCore
@@ -15,10 +16,10 @@ class DataCollection(QtCore.QThread):
     notifyState = QtCore.pyqtSignal(str)
     fileReady = QtCore.pyqtSignal(str)
 
-    def __init__(self, configuration, data_scan, data_scan_processed, pmt_picoscope, ps_picoscope, buttons_pannel, plotting_tabs, parent=None):
+    def __init__(self, configuration, data_scan, data_scan_processed, pmt_picoscope, ps_picoscope, tab_buttons_pannel, plotting_tabs, parent=None):
 
         self.configuration = configuration
-        self.buttons_pannel = buttons_pannel
+        self.tab_buttons_pannel = tab_buttons_pannel
         self.ps_picoscope = ps_picoscope
         self.pmt_picoscope =pmt_picoscope
         self.data_scan = data_scan
@@ -45,16 +46,16 @@ class DataCollection(QtCore.QThread):
 
             # Info Collection PMT:
 
-            InRange_PMT = [float(self.buttons_pannel.acquisition_config_pmt_in_start_txt.text()),
-                           float(self.buttons_pannel.acquisition_config_pmt_in_end_txt.text())]
+            InRange_PMT = [float(self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_pmt_in_start_txt.text()),
+                           float(self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_pmt_in_end_txt.text())]
 
-            OutRange_PMT = [float(self.buttons_pannel.acquisition_config_pmt_out_start_txt.text()),
-                            float(self.buttons_pannel.acquisition_config_pmt_out_end_txt.text())]
+            OutRange_PMT = [float(self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_pmt_out_start_txt.text()),
+                            float(self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_pmt_out_end_txt.text())]
 
-            PMT_Ranges = [self.buttons_pannel.scope_config_box_pmt_ch1.currentIndex() + 1,
-                          self.buttons_pannel.scope_config_box_pmt_ch2.currentIndex() + 1,
-                          self.buttons_pannel.scope_config_box_pmt_ch3.currentIndex() + 1,
-                          self.buttons_pannel.scope_config_box_pmt_ch4.currentIndex() + 1]
+            PMT_Ranges = [self.tab_buttons_pannel.buttons_pannel_config.scope_config_box_pmt_ch1.currentIndex() + 1,
+                          self.tab_buttons_pannel.buttons_pannel_config.scope_config_box_pmt_ch2.currentIndex() + 1,
+                          self.tab_buttons_pannel.buttons_pannel_config.scope_config_box_pmt_ch3.currentIndex() + 1,
+                          self.tab_buttons_pannel.buttons_pannel_config.scope_config_box_pmt_ch4.currentIndex() + 1]
 
             Index_Start_In_PMT = int(1e-3 * InRange_PMT[0] * Fs_Pmt)
             Samples_In_PMT = int(1e-3 * (InRange_PMT[1] - InRange_PMT[0]) * Fs_Pmt)
@@ -66,14 +67,14 @@ class DataCollection(QtCore.QThread):
 
             # Info Collection OPS:
 
-            InRange_OPS = [float(self.buttons_pannel.acquisition_config_ops_in_start_txt.text()),
-                           float(self.buttons_pannel.acquisition_config_ops_in_end_txt.text())]
+            InRange_OPS = [float(self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_ops_in_start_txt.text()),
+                           float(self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_ops_in_end_txt.text())]
 
-            OutRange_OPS = [float(self.buttons_pannel.acquisition_config_ops_out_start_txt.text()),
-                            float(self.buttons_pannel.acquisition_config_ops_out_end_txt.text())]
+            OutRange_OPS = [float(self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_ops_out_start_txt.text()),
+                            float(self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_ops_out_end_txt.text())]
 
-            OPS_Ranges = [self.buttons_pannel.scope_config_box_ops_ch1.currentIndex()+1,
-                          self.buttons_pannel.scope_config_box_ops_ch2.currentIndex()+1]
+            OPS_Ranges = [self.tab_buttons_pannel.buttons_pannel_config.scope_config_box_ops_ch1.currentIndex()+1,
+                          self.tab_buttons_pannel.buttons_pannel_config.scope_config_box_ops_ch2.currentIndex()+1]
 
             Index_Start_In_OPS = int(1e-3 * InRange_OPS[0] * Fs_Ops)
             Samples_In_OPS = int(1e-3 * (InRange_OPS[1] - InRange_OPS[0]) * Fs_Ops)
@@ -146,7 +147,7 @@ class DataCollection(QtCore.QThread):
             triggerChannel = self.ps_picoscope.m.TriggerChannels.Aux
             direction = self.ps_picoscope.m.ThresholdDirections.rising
             thresholdVoltage = 0.5
-            Wait = 2000
+            Wait = 5000
 
             status_trigger = self.ps_picoscope.set_simple_trigger(enabled=True, source=triggerChannel, threshold=thresholdVoltage, direction=direction, waitfor=Wait)
             status_trigger = self.pmt_picoscope.set_simple_trigger(enabled=True, source=triggerChannel, threshold=thresholdVoltage, direction=direction, waitfor=Wait)
@@ -166,11 +167,17 @@ class DataCollection(QtCore.QThread):
 
             # Wait for trigger
             self.notifyState.emit('Trig...')
+                # Enable LTIM Output
+            FESAControlsUpdater.SendFESAcommands(self.tab_buttons_pannel, action='LTIM_ON')
+
             self.pmt_picoscope._collect_event.wait()
             self.ps_picoscope._collect_event.wait()
 
             self.pmt_picoscope._collect_event.clear()
             self.ps_picoscope._collect_event.clear()
+
+                # Disable LTIM Output
+            FESAControlsUpdater.SendFESAcommands(self.tab_buttons_pannel, action='LTIM_OFF')
 
             # Start timer after trigger is received
             t = time.time()
@@ -290,7 +297,7 @@ class DataCollection(QtCore.QThread):
             self.fileReady.emit(filename)
 
             # Plotting stuff:
-            if self.buttons_pannel.updater_raw.isChecked() | self.buttons_pannel.updater_motion.isChecked() | self.buttons_pannel.updater_profile.isChecked():
+            if self.tab_buttons_pannel.buttons_pannel.updater_raw.isChecked() | self.tab_buttons_pannel.buttons_pannel.updater_motion.isChecked() | self.tab_buttons_pannel.buttons_pannel.updater_profile.isChecked():
                 self.notifyState.emit('Process..')
                 self.data_scan_processed.process_data(self.data_scan, self.configuration)
 
@@ -301,13 +308,13 @@ class DataCollection(QtCore.QThread):
                     title = ''
 
                 self.notifyState.emit('Plotting')
-                if self.buttons_pannel.updater_raw.isChecked():
+                if self.tab_buttons_pannel.buttons_pannel.updater_raw.isChecked():
                     self.plotting_tabs.tab_raw_data.actualise(self.data_scan, self.data_scan_processed, self.configuration)
 
-                if self.buttons_pannel.updater_motion.isChecked():
+                if self.tab_buttons_pannel.buttons_pannel.updater_motion.isChecked():
                     self.plotting_tabs.tab_motion_data.actualise(self.data_scan_processed)
 
-                if self.buttons_pannel.updater_profile.isChecked():
+                if self.tab_buttons_pannel.buttons_pannel.updater_profile.isChecked():
                     self.plotting_tabs.tab_processed_profiles.actualise(X_IN=self.data_scan_processed.PS_POSA_IN_Proj,
                                                                         X_OUT=self.data_scan_processed.PS_POSA_OUT_Proj,
                                                                         Y_IN=self.data_scan_processed.PMT_IN,
@@ -320,7 +327,7 @@ class DataCollection(QtCore.QThread):
 
             self.notifyState.emit('IDLE')
             # Check for Loop exit condition
-            if self.buttons_pannel.acquisition_mode_single.isChecked():
+            if self.tab_buttons_pannel.buttons_pannel.acquisition_mode_single.isChecked():
                 break
 
     def updateinfodata(self):

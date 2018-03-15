@@ -43,6 +43,7 @@ class Configuration:
 
         self.app_datapath = eval(config.get('Application Parameters', 'datapath'))
         self.info_datapath = eval(config.get('Application Parameters', 'info_datapath'))
+        self.system = eval(config.get('Application Parameters', 'System'))
 
         self.ps_pico_sn = eval(config.get('Scopes Config', 'ps_pico_sn'))
         self.ps_pico_def_scale = eval(config.get('Scopes Config', 'ps_pico_def_scale'))

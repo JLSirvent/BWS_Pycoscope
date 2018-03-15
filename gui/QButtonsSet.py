@@ -48,60 +48,24 @@ class QButtonsSet(QWidget):
         # Declaration of components
 
         self.scope_config_box = QGroupBox('Scopes Config.')
-
         self.scope_connect_btn = QPushButton('Connect')
         self.scope_connect_status = QLabel('OFF')
         self.scope_connect_status.setAlignment(QtCore.Qt.AlignCenter)
         self.scope_connect_status.setStyleSheet('QLabel {background-color: red; font: bold 14px; text-align: center;}')
         self.scope_connect_btn.setStyleSheet('QPushButton {font: bold 12px;}')
 
-        self.scope_config_box_pmt = QGroupBox('PMTs')
-        self.scope_config_box_pmt_ch1_lbl = QLabel('CH1')
-        self.scope_config_box_pmt_ch1 = QComboBox()
-        self.add_ranges(self.scope_config_box_pmt_ch1)
-        self.scope_config_box_pmt_ch2_lbl = QLabel('CH2')
-        self.scope_config_box_pmt_ch2 = QComboBox()
-        self.add_ranges(self.scope_config_box_pmt_ch2)
-        self.scope_config_box_pmt_ch3_lbl = QLabel('CH3')
-        self.scope_config_box_pmt_ch3 = QComboBox()
-        self.add_ranges(self.scope_config_box_pmt_ch3)
-        self.scope_config_box_pmt_ch4_lbl = QLabel('CH4')
-        self.scope_config_box_pmt_ch4 = QComboBox()
-        self.add_ranges(self.scope_config_box_pmt_ch4)
+        self.cycle_selector_box = QGroupBox('Scanner Trigger')
+        self.cycle_selector_LTIM_ONOFF = QPushButton('ON/OFF')
+        self.cycle_selector_LTIM_ONOFF_State = QLabel('OFF')
+        self.cycle_selector_LTIM_ONOFF_State.setStyleSheet('QLabel {background-color: red; font: bold 14px; text-align: center;}')
+        self.cycle_selector_combo =  QComboBox()
+        self.cycle_selector_dly_lbl = QLabel('Acq. Delay (ms):')
+        self.cycle_selector_dly_txt = QLineEdit()
+        self.cycle_selector_curr_dly = QLabel('Current Dly:')
+        self.cycle_selector_curr_dly.setStyleSheet('QLabel {font: bold 11px; text-align: centre;}')
+        self.cycle_selector_last_ts = QLabel('Last CycleStamp:')
+        self.cycle_selector_last_ts.setStyleSheet('QLabel {font: bold 11px; text-align: centre;}')
 
-        self.scope_config_box_ops = QGroupBox('Position Sensors')
-        self.scope_config_box_ops_ch1_lbl = QLabel('CH1')
-        self.scope_config_box_ops_ch1 = QComboBox()
-        self.add_ranges(self.scope_config_box_ops_ch1)
-        self.scope_config_box_ops_ch2_lbl = QLabel('CH2')
-        self.scope_config_box_ops_ch2 = QComboBox()
-        self.add_ranges(self.scope_config_box_ops_ch2)
-
-        self.acquisition_config_box = QGroupBox('Acquisiton Timming Config. (ms)')
-        self.acquisition_config_box_pmt = QGroupBox('PMTs')
-
-        self.acquisition_config_pmt_in_start_lbl = QLabel('Start')
-        self.acquisition_config_pmt_in_start_txt = QLineEdit()
-        self.acquisition_config_pmt_in_end_lbl = QLabel('End')
-        self.acquisition_config_pmt_in_end_txt = QLineEdit()
-        self.acquisition_config_pmt_out_start_lbl = QLabel('Start')
-        self.acquisition_config_pmt_out_start_txt = QLineEdit()
-        self.acquisition_config_pmt_out_end_lbl = QLabel('End')
-        self.acquisition_config_pmt_out_end_txt = QLineEdit()
-
-        self.acquisition_config_box_ops =  QGroupBox('Position Sensors')
-        self.acquisition_config_ops_in_start_lbl= QLabel('Start')
-        self.acquisition_config_ops_in_start_txt = QLineEdit()
-        self.acquisition_config_ops_in_end_lbl= QLabel('End')
-        self.acquisition_config_ops_in_end_txt = QLineEdit()
-        self.acquisition_config_ops_in_ref_lbl= QLabel('Ref')
-        self.acquisition_config_ops_in_ref_txt = QLineEdit()
-        self.acquisition_config_ops_out_start_lbl= QLabel('Start')
-        self.acquisition_config_ops_out_start_txt = QLineEdit()
-        self.acquisition_config_ops_out_end_lbl= QLabel('End')
-        self.acquisition_config_ops_out_end_txt = QLineEdit()
-        self.acquisition_config_ops_out_ref_lbl= QLabel('Ref')
-        self.acquisition_config_ops_out_ref_txt = QLineEdit()
 
         self.acquisition_launch_box = QGroupBox('Acquisition')
         self.acquisition_mode_box =  QGroupBox('Acquisition Mode')
@@ -127,87 +91,28 @@ class QButtonsSet(QWidget):
 
         # Components layout construction
 
-        # SCOPE CONFIGURATION
         # Connect Buttons Layout
         self.scopes_connect_layout = QHBoxLayout()
         self.scopes_connect_layout.addWidget(self.scope_connect_btn)
         self.scopes_connect_layout.addWidget(self.scope_connect_status)
+        self.scope_config_box.setLayout(self.scopes_connect_layout)
 
-        # Scope config PMTs Layout
-        self.scope_config_box_pmt_layout = QVBoxLayout(self)
-        self.scope_config_box_pmt_layout1 = QHBoxLayout(self)
-        self.scope_config_box_pmt_layout1.addWidget(self.scope_config_box_pmt_ch1_lbl)
-        self.scope_config_box_pmt_layout1.addWidget(self.scope_config_box_pmt_ch2_lbl)
-        self.scope_config_box_pmt_layout1.addWidget(self.scope_config_box_pmt_ch3_lbl)
-        self.scope_config_box_pmt_layout1.addWidget(self.scope_config_box_pmt_ch4_lbl)
-        self.scope_config_box_pmt_layout2 = QHBoxLayout(self)
-        self.scope_config_box_pmt_layout2.addWidget(self.scope_config_box_pmt_ch1)
-        self.scope_config_box_pmt_layout2.addWidget(self.scope_config_box_pmt_ch2)
-        self.scope_config_box_pmt_layout2.addWidget(self.scope_config_box_pmt_ch3)
-        self.scope_config_box_pmt_layout2.addWidget(self.scope_config_box_pmt_ch4)
-        self.scope_config_box_pmt_layout.addLayout(self.scope_config_box_pmt_layout1)
-        self.scope_config_box_pmt_layout.addLayout(self.scope_config_box_pmt_layout2)
-        self.scope_config_box_pmt.setLayout(self.scope_config_box_pmt_layout)
-
-        # Scope Config OPS Layout
-        self.scope_config_box_ops_layout = QHBoxLayout(self)
-        self.scope_config_box_ops_layout.addWidget(self.scope_config_box_ops_ch1_lbl)
-        self.scope_config_box_ops_layout.addWidget(self.scope_config_box_ops_ch1)
-        self.scope_config_box_ops_layout.addWidget(self.scope_config_box_ops_ch2_lbl)
-        self.scope_config_box_ops_layout.addWidget(self.scope_config_box_ops_ch2)
-        self.scope_config_box_ops.setLayout(self.scope_config_box_ops_layout)
+        # Cycle Selector
+        self.cycle_selector_box_layout_0 = QHBoxLayout()
+        self.cycle_selector_box_layout_0.addWidget(self.cycle_selector_LTIM_ONOFF)
+        self.cycle_selector_box_layout_0.addWidget(self.cycle_selector_LTIM_ONOFF_State)
+        self.cycle_selector_box_layout_1 = QHBoxLayout()
+        self.cycle_selector_box_layout_1.addWidget(self.cycle_selector_dly_lbl)
+        self.cycle_selector_box_layout_1.addWidget(self.cycle_selector_dly_txt)
+        self.cycle_selector_box_layout = QVBoxLayout()
+        self.cycle_selector_box_layout.addLayout(self.cycle_selector_box_layout_0)
+        self.cycle_selector_box_layout.addWidget(self.cycle_selector_combo)
+        self.cycle_selector_box_layout.addLayout(self.cycle_selector_box_layout_1)
+        self.cycle_selector_box_layout.addWidget(self.cycle_selector_curr_dly)
+        self.cycle_selector_box_layout.addWidget(self.cycle_selector_last_ts)
+        self.cycle_selector_box.setLayout(self.cycle_selector_box_layout)
 
         # General Scope Config Layout
-        self.scope_config_box_layout = QVBoxLayout(self)
-        self.scope_config_box_layout.addStretch(1)
-        self.scope_config_box_layout.addLayout(self.scopes_connect_layout)
-        self.scope_config_box_layout.addWidget(self.scope_config_box_pmt)
-        self.scope_config_box_layout.addWidget(self.scope_config_box_ops)
-        self.scope_config_box.setLayout(self.scope_config_box_layout)
-
-        # ACQUISITION CONFIGURATION
-
-        # Acquisition PMT
-        self.acquisition_config_box_pmt_layout = QVBoxLayout(self)
-        self.acquisition_config_box_pmt_layout1 = QHBoxLayout(self)
-        self.acquisition_config_box_pmt_layout1.addWidget(self.acquisition_config_pmt_in_start_lbl)
-        self.acquisition_config_box_pmt_layout1.addWidget(self.acquisition_config_pmt_in_start_txt)
-        self.acquisition_config_box_pmt_layout1.addWidget(self.acquisition_config_pmt_in_end_lbl)
-        self.acquisition_config_box_pmt_layout1.addWidget(self.acquisition_config_pmt_in_end_txt)
-        self.acquisition_config_box_pmt_layout2 = QHBoxLayout(self)
-        self.acquisition_config_box_pmt_layout2.addWidget(self.acquisition_config_pmt_out_start_lbl)
-        self.acquisition_config_box_pmt_layout2.addWidget(self.acquisition_config_pmt_out_start_txt)
-        self.acquisition_config_box_pmt_layout2.addWidget(self.acquisition_config_pmt_out_end_lbl)
-        self.acquisition_config_box_pmt_layout2.addWidget(self.acquisition_config_pmt_out_end_txt)
-        self.acquisition_config_box_pmt_layout.addLayout(self.acquisition_config_box_pmt_layout1)
-        self.acquisition_config_box_pmt_layout.addLayout(self.acquisition_config_box_pmt_layout2)
-        self.acquisition_config_box_pmt.setLayout(self.acquisition_config_box_pmt_layout)
-
-        # Acquisition OPS
-        self.acquisition_config_box_ops_layout = QVBoxLayout(self)
-        self.acquisition_config_box_ops_layout1 = QHBoxLayout(self)
-        self.acquisition_config_box_ops_layout1.addWidget(self.acquisition_config_ops_in_start_lbl)
-        self.acquisition_config_box_ops_layout1.addWidget(self.acquisition_config_ops_in_start_txt)
-        self.acquisition_config_box_ops_layout1.addWidget(self.acquisition_config_ops_in_end_lbl)
-        self.acquisition_config_box_ops_layout1.addWidget(self.acquisition_config_ops_in_end_txt)
-        self.acquisition_config_box_ops_layout1.addWidget(self.acquisition_config_ops_in_ref_lbl)
-        self.acquisition_config_box_ops_layout1.addWidget(self.acquisition_config_ops_in_ref_txt)
-        self.acquisition_config_box_ops_layout2 = QHBoxLayout(self)
-        self.acquisition_config_box_ops_layout2.addWidget(self.acquisition_config_ops_out_start_lbl)
-        self.acquisition_config_box_ops_layout2.addWidget(self.acquisition_config_ops_out_start_txt)
-        self.acquisition_config_box_ops_layout2.addWidget(self.acquisition_config_ops_out_end_lbl)
-        self.acquisition_config_box_ops_layout2.addWidget(self.acquisition_config_ops_out_end_txt)
-        self.acquisition_config_box_ops_layout2.addWidget(self.acquisition_config_ops_out_ref_lbl)
-        self.acquisition_config_box_ops_layout2.addWidget(self.acquisition_config_ops_out_ref_txt)
-        self.acquisition_config_box_ops_layout.addLayout(self.acquisition_config_box_ops_layout1)
-        self.acquisition_config_box_ops_layout.addLayout(self.acquisition_config_box_ops_layout2)
-        self.acquisition_config_box_ops.setLayout(self.acquisition_config_box_ops_layout)
-
-        # General Acquisition Config Layout
-        self.acquisition_config_box_layout = QVBoxLayout(self)
-        self.acquisition_config_box_layout.addWidget(self.acquisition_config_box_pmt)
-        self.acquisition_config_box_layout.addWidget(self.acquisition_config_box_ops)
-        self.acquisition_config_box.setLayout(self.acquisition_config_box_layout)
 
         # Acquisition Mode
         self.acquisition_mode_box_layout = QHBoxLayout(self)
@@ -239,18 +144,14 @@ class QButtonsSet(QWidget):
         # Whole Window Layout
         main_layout = QVBoxLayout()
         main_layout.addWidget(self.scope_config_box)
-        main_layout.addWidget(self.acquisition_config_box)
+        main_layout.addWidget(self.cycle_selector_box)
         main_layout.addWidget(self.acquisition_launch_box)
         main_layout.addWidget(self.updater_box)
         main_layout.addWidget(self.dataset_box)
         self.setLayout(main_layout)
-        self.setFixedWidth(250)
+        #self.setFixedWidth(250)
 
         # Some actions
-
-
-    def add_ranges(self,ItemToLoad):
-        ItemToLoad.addItems(['OFF', '50 mv', '100 mv', '200 mv', '500 mv', '1 v', '2 v'])
 
     def update_file_list(self,path):
         self.dataset_list.clear()
@@ -263,23 +164,23 @@ class QButtonsSet(QWidget):
             Counter = Counter + 1
 
     def set_defaults_at_startup(self,config):
-        self.acquisition_config_pmt_in_start_txt.setText(str(config.def_pmt_in_start))
-        self.acquisition_config_pmt_in_end_txt.setText(str(config.def_pmt_in_end))
-        self.acquisition_config_pmt_out_start_txt.setText(str(config.def_pmt_out_start))
-        self.acquisition_config_pmt_out_end_txt.setText(str(config.def_pmt_out_end))
 
-        self.acquisition_config_ops_in_start_txt.setText(str(config.def_ops_in_start))
-        self.acquisition_config_ops_in_end_txt.setText(str(config.def_ops_in_end))
-        self.acquisition_config_ops_in_ref_txt.setText(str(config.def_ops_in_ref))
-        self.acquisition_config_ops_out_start_txt.setText(str(config.def_ops_out_start))
-        self.acquisition_config_ops_out_end_txt.setText(str(config.def_ops_out_end))
-        self.acquisition_config_ops_out_ref_txt.setText(str(config.def_ops_out_ref))
 
-        self.scope_config_box_ops_ch1.setCurrentIndex(config.ps_pico_def_scale)
-        self.scope_config_box_ops_ch2.setCurrentIndex(config.ps_pico_def_scale)
-
-        self.scope_config_box_pmt_ch1.setCurrentIndex(config.pmt_pico_def_scale[0])
-        self.scope_config_box_pmt_ch2.setCurrentIndex(config.pmt_pico_def_scale[1])
-        self.scope_config_box_pmt_ch3.setCurrentIndex(config.pmt_pico_def_scale[2])
-        self.scope_config_box_pmt_ch4.setCurrentIndex(config.pmt_pico_def_scale[3])
-
+        if config.system == 'PSB':
+            self.cycle_selector_combo.addItems(['PSB.USER.ZERO', 'PSB.USER.AD', 'PSB.USER.EAST1', 'PSB.USER.EAST2',
+                                                'PSB.USER.LHC1A', 'PSB.USER.LHC1B', 'PSB.USER.LHC2A', 'PSB.USER.LHC2B',
+                                                'PSB.USER.LHC3', 'PSB.USER.LHC4', 'PSB.USER.LHCINDIV', 'PSB.USER.LHCPROBE',
+                                                'PSB.USER.MD1', 'PSB.USER.MD2', 'PSB.USER.MD3', 'PSB.USER.MD4',
+                                                'PSB.USER.MD5', 'PSB.USER.MD6', 'PSB.USER.NORMGPS', 'PSB.USER.NORMHRS',
+                                                'PSB.USER.SFTPRO1', 'PSB.USER.SFTPRO2', 'PSB.USER.STAGISO', 'PSB.USER.TOF'])
+        if config.system == 'PS':
+            self.cycle_selector_combo.addItems(['Select Cycle'])
+        if config.system == 'SPS':
+            self.cycle_selector_combo.addItems(['SPS.USER.ZERO','SPS.USER.AWAKE1', 'SPS.USER.AWAKE2', 'SPS.USER.HIRADMT1',
+                                                'SPS.USER.HIRADMT2', 'SPS.USER.LHC1', 'SPS.USER.LHC2', 'SPS.USER.LHC25NS',
+                                                'SPS.USER.LHC3', 'SPS.USER.LHC4', 'SPS.USER.LHC50NS', 'SPS.USER.LHCINDIV',
+                                                'SPS.USER.LHCION1', 'SPS.USER.LHCION2', 'SPS.USER.LHCION3', 'SPS.USER.LHCION4',
+                                                'SPS.USER.LHCMD1', 'SPS.USER.LHCMD2', 'SPS.USER.LHCMD3', 'SPS.USER.LHCMD4',
+                                                'SPS.USER.LHCPILOT', 'SPS.USER.MD1', 'SPS.USER.MD2', 'SPS.USER.MD3',
+                                                'SPS.USER.MD4', 'SPS.USER.SFTION1', 'SPS.USER.SFTION2', 'SPS.USER.SFTION3',
+                                                'SPS.USER.SFTPRO1', 'SPS.USER.SFTPRO2', 'SPS.USER.SFTPRO3'])

@@ -27,15 +27,12 @@ class FESAControlsUpdater(QtCore.QThread):
         while True:
             time.sleep(0.5)
             path = 'H:/user/j/jsirvent/Work/MD_Scripts/PSB/Auto_Script/test_g.mat'
-            Errorfound = 1
+            path2 = 'H:/user/j/jsirvent/Work/MD_Scripts/PSB/Auto_Script/test_ts.mat'
 
-            while Errorfound == 1:
-                try:
-                    data = sio.loadmat(path, struct_as_record=False, squeeze_me=True)
-                    Errorfound = 0
-                except:
-                    Errorfound = 1
-                    print('File reading error')
+            try:
+                data = sio.loadmat(path, struct_as_record=False, squeeze_me=True)
+            except:
+                print('File reading error')
 
             # HV Controls
 
@@ -95,7 +92,13 @@ class FESAControlsUpdater(QtCore.QThread):
                     'QLabel {background-color: red; font: bold 14px; text-align: center;}')
 
             self.tab_buttons_pannel.buttons_pannel.cycle_selector_curr_dly.setText('Current Dly:' + str(data['LTIM_ACQDELAY_GET']))
-            #self.tab_buttons_pannel.buttons_pannel.cycle_selector_last_ts.setText('Last CycleStamp: ' + data['LTIM_CYCLESTAMP'])
+
+            try:
+                data2 = sio.loadmat(path2, struct_as_record=False, squeeze_me=True)
+            except:
+                print('File reading error')
+
+            self.tab_buttons_pannel.buttons_pannel.cycle_selector_last_ts.setText('Last CycleStamp:\n' + data2['LTIM_CYCLESTAMP'])
 
 
 

@@ -79,17 +79,18 @@ class plot(mplCanvas.mplCanvas):
                 return y
             for c in range(0,4):
                 try:
-                    _x = 1e3*np.asarray(x[1])
+                    _x = 1e3 * np.asarray(x[1])
                     _y = np.asarray(y[c][1])
-
                     a = np.max(_y) - np.min(_y)
                     mean = _x[np.where(_y == np.max(_y))[0]]
                     sigma = 50
                     o = np.min(_y)
-
-                    popt, pcov = curve_fit(gauss, _x, _y, p0=[a, mean, sigma, o])
-                    ax.plot(_x, _y, color=col[c], label ='CH' + str(c+1) + r' $\sigma$:{0:.2f}'.format(popt[2])+ 'um' + r' $\mu$:{0:.2f}'.format(popt[1]) + 'um')
-                    ax.plot(_x,gauss(_x,*popt),color ='black')
+                    try:
+                        popt, pcov = curve_fit(gauss, _x, _y, p0=[a, mean, sigma, o])
+                        ax.plot(_x, _y, color=col[c], label ='CH' + str(c+1) + r' $\sigma$:{0:.2f}'.format(popt[2])+ 'um' + r' $\mu$:{0:.2f}'.format(popt[1]) + 'um')
+                        ax.plot(_x,gauss(_x,*popt),color ='black')
+                    except:
+                        ax.plot(_x, _y, color=col[c], label='CH' + str(c + 1) + ' Fit Error')
                 except:
                     pass
 

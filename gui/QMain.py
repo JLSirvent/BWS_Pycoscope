@@ -195,7 +195,7 @@ class QMain(QWidget):
         # self.LogDialog.add('Loading scan data...', 'info')
         full_file_path = self.configuration.app_datapath + '/' + item.text().split('   ')[1] + '.mat'
 
-        self.data_scan.load_data(full_file_path)
+        self.data_scan.load_data_v2(full_file_path)
 
         try:
             title = self.data_scan.InfoData_CycleStamp + ' ' + self.data_scan.InfoData_CycleName + ' AcqDly: ' + str(self.data_scan.InfoData_AcqDelay) + 'ms'

@@ -31,74 +31,75 @@ class FESAControlsUpdater(QtCore.QThread):
 
             try:
                 data = sio.loadmat(path, struct_as_record=False, squeeze_me=True)
+
+
+                # HV Controls
+
+                if data['HV_ENABLE_GET'] == 1:
+                    self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_HV_ONOFF_State.setText('ON')
+                    self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_HV_ONOFF_State.setStyleSheet(
+                        'QLabel {background-color: green; font: bold 14px; text-align: center;}')
+                else:
+                    self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_HV_ONOFF_State.setText('OFF')
+                    self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_HV_ONOFF_State.setStyleSheet(
+                        'QLabel {background-color: red; font: bold 14px; text-align: center;}')
+
+                self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_HV_MeasV_edit.setText('Voltage: ' + '{0:.1f}'.format(data['HV_VOLTAGE_GET']) + 'V')
+                self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_HV_MeasI_edit.setText('Current: ' + '{0:.1f}'.format(1e6*data['HV_CURRENT_GET']) + 'uA')
+
+                # FW Controls
+                if data['FW_ENABLE_GET'] == 1:
+                    self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_FW_ONOFF_State.setText('ON')
+                    self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_FW_ONOFF_State.setStyleSheet(
+                        'QLabel {background-color: green; font: bold 14px; text-align: center;}')
+                else:
+                    self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_FW_ONOFF_State.setText('OFF')
+                    self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_FW_ONOFF_State.setStyleSheet(
+                        'QLabel {background-color: red; font: bold 14px; text-align: center;}')
+
+                if data['FW_MOTOR_STAT'] == 1:
+                    self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_FW_Motor.setStyleSheet(
+                        'QLabel {background-color: green; font: bold 14px; text-align: center;}')
+                else:
+                    self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_FW_Motor.setStyleSheet(
+                        'QLabel {background-color: red; font: bold 14px; text-align: center;}')
+
+                if data['FW_SWITCH_PLUS'] == 1:
+                    self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_FW_Plus.setStyleSheet(
+                        'QLabel {background-color: green; font: bold 14px; text-align: center;}')
+                else:
+                    self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_FW_Plus.setStyleSheet(
+                        'QLabel {background-color: red; font: bold 14px; text-align: center;}')
+
+                if data['FW_SWITCH_MINUS'] == 1:
+                    self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_FW_Minus.setStyleSheet(
+                        'QLabel {background-color: green; font: bold 14px; text-align: center;}')
+                else:
+                    self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_FW_Minus.setStyleSheet(
+                        'QLabel {background-color: red; font: bold 14px; text-align: center;}')
+
+                self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_FW_Position_lbl.setText('Current Pos.: ' + str((data['FW_POSITION_GET'])))
+
+                # LTIM Controls:
+                if data['LTIM_ENABLE_GET'] == 1:
+                    self.tab_buttons_pannel.buttons_pannel.cycle_selector_LTIM_ONOFF_State.setText('ON')
+                    self.tab_buttons_pannel.buttons_pannel.cycle_selector_LTIM_ONOFF_State.setStyleSheet(
+                        'QLabel {background-color: green; font: bold 14px; text-align: center;}')
+                else:
+                    self.tab_buttons_pannel.buttons_pannel.cycle_selector_LTIM_ONOFF_State.setText('OFF')
+                    self.tab_buttons_pannel.buttons_pannel.cycle_selector_LTIM_ONOFF_State.setStyleSheet(
+                        'QLabel {background-color: red; font: bold 14px; text-align: center;}')
+
+                self.tab_buttons_pannel.buttons_pannel.cycle_selector_curr_dly.setText('Current Dly:' + str(data['LTIM_ACQDELAY_GET']))
             except:
-                print('File reading error')
-            # HV Controls
-
-            if data['HV_ENABLE_GET'] == 1:
-                self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_HV_ONOFF_State.setText('ON')
-                self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_HV_ONOFF_State.setStyleSheet(
-                    'QLabel {background-color: green; font: bold 14px; text-align: center;}')
-            else:
-                self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_HV_ONOFF_State.setText('OFF')
-                self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_HV_ONOFF_State.setStyleSheet(
-                    'QLabel {background-color: red; font: bold 14px; text-align: center;}')
-
-            self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_HV_MeasV_edit.setText('Voltage: ' + '{0:.1f}'.format(data['HV_VOLTAGE_GET']) + 'V')
-            self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_HV_MeasI_edit.setText('Current: ' + '{0:.1f}'.format(1e6*data['HV_CURRENT_GET']) + 'uA')
-
-            # FW Controls
-            if data['FW_ENABLE_GET'] == 1:
-                self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_FW_ONOFF_State.setText('ON')
-                self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_FW_ONOFF_State.setStyleSheet(
-                    'QLabel {background-color: green; font: bold 14px; text-align: center;}')
-            else:
-                self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_FW_ONOFF_State.setText('OFF')
-                self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_FW_ONOFF_State.setStyleSheet(
-                    'QLabel {background-color: red; font: bold 14px; text-align: center;}')
-
-            if data['FW_MOTOR_STAT'] == 1:
-                self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_FW_Motor.setStyleSheet(
-                    'QLabel {background-color: green; font: bold 14px; text-align: center;}')
-            else:
-                self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_FW_Motor.setStyleSheet(
-                    'QLabel {background-color: red; font: bold 14px; text-align: center;}')
-
-            if data['FW_SWITCH_PLUS'] == 1:
-                self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_FW_Plus.setStyleSheet(
-                    'QLabel {background-color: green; font: bold 14px; text-align: center;}')
-            else:
-                self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_FW_Plus.setStyleSheet(
-                    'QLabel {background-color: red; font: bold 14px; text-align: center;}')
-
-            if data['FW_SWITCH_MINUS'] == 1:
-                self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_FW_Minus.setStyleSheet(
-                    'QLabel {background-color: green; font: bold 14px; text-align: center;}')
-            else:
-                self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_FW_Minus.setStyleSheet(
-                    'QLabel {background-color: red; font: bold 14px; text-align: center;}')
-
-            self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_FW_Position_lbl.setText('Current Pos.: ' + str((data['FW_POSITION_GET'])))
-
-            # LTIM Controls:
-            if data['LTIM_ENABLE_GET'] == 1:
-                self.tab_buttons_pannel.buttons_pannel.cycle_selector_LTIM_ONOFF_State.setText('ON')
-                self.tab_buttons_pannel.buttons_pannel.cycle_selector_LTIM_ONOFF_State.setStyleSheet(
-                    'QLabel {background-color: green; font: bold 14px; text-align: center;}')
-            else:
-                self.tab_buttons_pannel.buttons_pannel.cycle_selector_LTIM_ONOFF_State.setText('OFF')
-                self.tab_buttons_pannel.buttons_pannel.cycle_selector_LTIM_ONOFF_State.setStyleSheet(
-                    'QLabel {background-color: red; font: bold 14px; text-align: center;}')
-
-            self.tab_buttons_pannel.buttons_pannel.cycle_selector_curr_dly.setText('Current Dly:' + str(data['LTIM_ACQDELAY_GET']))
+                print('Info file #1 reading error on AFS')
 
             try:
                 data2 = sio.loadmat(path2, struct_as_record=False, squeeze_me=True)
+                self.tab_buttons_pannel.buttons_pannel.cycle_selector_last_ts.setText(
+                    'Last CycleStamp:\n' + str(data2['LTIM_CYCLESTAMP']))
             except:
-                print('Fileb reading error')
-
-            self.tab_buttons_pannel.buttons_pannel.cycle_selector_last_ts.setText('Last CycleStamp:\n' + str(data2['LTIM_CYCLESTAMP']))
-
+                print('Info file #2 reading error on AFS')
 
 
 def SendFESAcommands(tab_buttons_pannel, action=''):

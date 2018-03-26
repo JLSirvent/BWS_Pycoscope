@@ -25,6 +25,7 @@
 
 import scipy.io as sio
 import numpy as np
+import time
 import matplotlib.pyplot as plt
 import ops_processing, utils
 
@@ -40,7 +41,12 @@ class DataScan_Processed:
 
        # PMT
         self.PMT_IN = [np.ones(50), np.ones(50), np.ones(50), np.ones(50)]
+        self.PMT_IN_Imax =[0, 0, 0, 0]
+        self.PMT_IN_Qtot =[0, 0, 0, 0]
+
         self.PMT_OUT = [np.ones(50), np.ones(50), np.ones(50), np.ones(50)]
+        self.PMT_OUT_Imax =[0, 0, 0, 0]
+        self.PMT_OUT_Qtot =[0, 0, 0, 0]
 
         self.PS_POSA_IN_Proj = [np.ones(50), np.ones(50)]
         self.PS_POSA_OUT_Proj = [np.ones(50), np.ones(50)]
@@ -97,16 +103,19 @@ class DataScan_Processed:
         for i in range(0,2):
 
             if i ==0:
-                PMTA = data_scan.PMT_PMTA_IN
-                PMTB = data_scan.PMT_PMTB_IN
-                PMTC = data_scan.PMT_PMTC_IN
-                PMTD = data_scan.PMT_PMTD_IN
+
+                PMTA = 1e3 * data_scan.PMT_PMTA_IN * data_scan.PMT_Factors[0]
+                PMTB = 1e3 * data_scan.PMT_PMTB_IN * data_scan.PMT_Factors[1]
+                PMTC = 1e3 * data_scan.PMT_PMTC_IN * data_scan.PMT_Factors[2]
+                PMTD = 1e3 * data_scan.PMT_PMTD_IN * data_scan.PMT_Factors[3]
                 TimeStart = data_scan.PMT_TimesStart[0]
+
+
             else:
-                PMTA = data_scan.PMT_PMTA_OUT
-                PMTB = data_scan.PMT_PMTB_OUT
-                PMTC = data_scan.PMT_PMTC_OUT
-                PMTD = data_scan.PMT_PMTD_OUT
+                PMTA = 1e3 * data_scan.PMT_PMTA_OUT * data_scan.PMT_Factors[0]
+                PMTB = 1e3 * data_scan.PMT_PMTB_OUT * data_scan.PMT_Factors[1]
+                PMTC = 1e3 * data_scan.PMT_PMTC_OUT * data_scan.PMT_Factors[2]
+                PMTD = 1e3 * data_scan.PMT_PMTD_OUT * data_scan.PMT_Factors[3]
                 TimeStart = data_scan.PMT_TimesStart[1]
 
             for c in range(0,4):
@@ -125,10 +134,18 @@ class DataScan_Processed:
                                                                         1.0*TimeStart,
                                                                         configuration.pmt_filterfreq_profile,
                                                                         configuration.pmt_downsample_profile)
+
+                    I_max = abs(np.max(PMT) - np.min(PMT))/50                   # in mA
+                    Q_tot = 1e3*(abs(np.sum(PMT))/50) * (1/data_scan.PMT_Fs)    # in uC
+
                     if i == 0:
                         self.PMT_IN[c] = Procesed_Profile
+                        self.PMT_IN_Imax[c] = I_max
+                        self.PMT_IN_Qtot[c] = Q_tot
                     if i == 1:
                         self.PMT_OUT[c] = Procesed_Profile
+                        self.PMT_OUT_Imax[c] = I_max
+                        self.PMT_OUT_Qtot[c] = Q_tot
                 except:
                     print('Error Processing CH' + str(c + 1))
 

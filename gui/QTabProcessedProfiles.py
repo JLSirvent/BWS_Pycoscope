@@ -31,12 +31,16 @@ class QtabProcessedProfiles(QWidget):
 
         self.setLayout(main_layout)
 
-    def actualise(self, X_IN, X_OUT, Y_IN, Y_OUT, stitleinfo):
+    def actualise(self, X_IN, X_OUT, Y_IN, Y_OUT, stitleinfo,Imax_IN, Imax_OUT, Qtot_IN, Qtot_OUT):
         self.plot.fig.clear()
         self.plot.X_IN  = X_IN
         self.plot.Y_IN  = Y_IN
         self.plot.X_OUT = X_OUT
         self.plot.Y_OUT = Y_OUT
+        self.plot.Qtot_OUT = Qtot_OUT
+        self.plot.Qtot_IN = Qtot_IN
+        self.plot.Imax_OUT = Imax_OUT
+        self.plot.Imax_IN = Imax_IN
         self.plot.stitleinfo = stitleinfo
         self.plot.compute_initial_figure()
         self.plot.draw()
@@ -49,6 +53,10 @@ class plot(mplCanvas.mplCanvas):
         self.Y_IN = [np.ones(4), np.ones(200), np.ones(200)]
         self.X_OUT = [np.ones(200),np.ones(200)]
         self.Y_OUT = [np.ones(4), np.ones(200), np.ones(200)]
+        self.Imax_OUT = [0, 0, 0, 0]
+        self.Imax_IN =  [0, 0, 0, 0]
+        self.Qtot_IN =  [0, 0, 0, 0]
+        self.Qtot_OUT =  [0, 0, 0, 0]
         self.stitleinfo = ' '
         super(plot, self).__init__(parent, width, height, dpi)
 
@@ -64,11 +72,15 @@ class plot(mplCanvas.mplCanvas):
             if i == 0:
                 x = self.X_IN
                 y = self.Y_IN
+                Imax = self.Imax_IN
+                Qtot = self.Qtot_IN
                 s_title = 'IN'
                 ax = ax1
             else:
                 x = self.X_OUT
                 y = self.Y_OUT
+                Imax = self.Imax_OUT
+                Qtot = self.Qtot_OUT
                 s_title = 'OUT'
                 ax = ax2
 
@@ -87,10 +99,10 @@ class plot(mplCanvas.mplCanvas):
                     o = np.min(_y)
                     try:
                         popt, pcov = curve_fit(gauss, _x, _y, p0=[a, mean, sigma, o])
-                        ax.plot(_x, _y, color=col[c], label ='CH' + str(c+1) + r' $\sigma$:{0:.2f}'.format(popt[2])+ 'um' + r' $\mu$:{0:.2f}'.format(popt[1]) + 'um')
+                        ax.plot(_x, _y, color=col[c], label ='CH' + str(c+1) + r' $\sigma$:{0:.2f}'.format(popt[2])+ 'um' + r' $\mu$:{0:.2f}'.format(popt[1]) + 'um\n' + 'Imax:{0:.1f}'.format(Imax[c])+ 'mA Qtot:{0:.1f}'.format(Qtot[c]) + 'uC')
                         ax.plot(_x,gauss(_x,*popt),color ='black')
                     except:
-                        ax.plot(_x, _y, color=col[c], label='CH' + str(c + 1) + ' Fit Error')
+                        ax.plot(_x, _y, color=col[c], label='CH' + str(c + 1) + ' Fit Error' + '\nImax:{0:.1f}'.format(Imax[c])+ 'mA Qtot:{0:.1f}'.format(Qtot[c]) + 'uC')
                 except:
                     pass
 

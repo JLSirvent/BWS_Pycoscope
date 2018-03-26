@@ -168,7 +168,10 @@ class DataCollection(QtCore.QThread):
             # Wait for trigger
             self.notifyState.emit('Trig...')
                 # Enable LTIM Output
-            FESAControlsUpdater.SendFESAcommands(self.tab_buttons_pannel, action='LTIM_ON')
+            try:
+                FESAControlsUpdater.SendFESAcommands(self.tab_buttons_pannel, action='LTIM_ON')
+            except:
+                print('Cannot Switch-ON LTIM!')
 
             self.pmt_picoscope._collect_event.wait()
             self.ps_picoscope._collect_event.wait()
@@ -177,7 +180,10 @@ class DataCollection(QtCore.QThread):
             self.ps_picoscope._collect_event.clear()
 
                 # Disable LTIM Output
-            FESAControlsUpdater.SendFESAcommands(self.tab_buttons_pannel, action='LTIM_OFF')
+            try:
+                FESAControlsUpdater.SendFESAcommands(self.tab_buttons_pannel, action='LTIM_OFF')
+            except:
+                print('Cannot Switch-OFF LTIM!')
 
             # Start timer after trigger is received
             t = time.time()
@@ -325,7 +331,7 @@ class DataCollection(QtCore.QThread):
                                                                     Imax_OUT=self.data_scan_processed.PMT_OUT_Imax,
                                                                     Qtot_IN=self.data_scan_processed.PMT_IN_Qtot,
                                                                     Qtot_OUT=self.data_scan_processed.PMT_OUT_Qtot,
-                                                                    stitleinfo=title) 
+                                                                    stitleinfo=title)
 
             # Print timer value to check how long data recovery,  storage and plotting (if selected) need
             elapsed = time.time() - t

@@ -316,11 +316,16 @@ class DataCollection(QtCore.QThread):
                     self.plotting_tabs.tab_motion_data.actualise(self.data_scan_processed)
 
                 if self.tab_buttons_pannel.buttons_pannel.updater_profile.isChecked():
+
                     self.plotting_tabs.tab_processed_profiles.actualise(X_IN=self.data_scan_processed.PS_POSA_IN_Proj,
-                                                                        X_OUT=self.data_scan_processed.PS_POSA_OUT_Proj,
-                                                                        Y_IN=self.data_scan_processed.PMT_IN,
-                                                                        Y_OUT=self.data_scan_processed.PMT_OUT,
-                                                                        stitleinfo=title)
+                                                                    X_OUT=self.data_scan_processed.PS_POSA_OUT_Proj,
+                                                                    Y_IN=self.data_scan_processed.PMT_IN,
+                                                                    Y_OUT=self.data_scan_processed.PMT_OUT,
+                                                                    Imax_IN=self.data_scan_processed.PMT_IN_Imax,
+                                                                    Imax_OUT=self.data_scan_processed.PMT_OUT_Imax,
+                                                                    Qtot_IN=self.data_scan_processed.PMT_IN_Qtot,
+                                                                    Qtot_OUT=self.data_scan_processed.PMT_OUT_Qtot,
+                                                                    stitleinfo=title)
 
             # Print timer value to check how long data recovery,  storage and plotting (if selected) need
             elapsed = time.time() - t

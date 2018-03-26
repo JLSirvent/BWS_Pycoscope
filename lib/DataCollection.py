@@ -325,7 +325,7 @@ class DataCollection(QtCore.QThread):
                                                                     Imax_OUT=self.data_scan_processed.PMT_OUT_Imax,
                                                                     Qtot_IN=self.data_scan_processed.PMT_IN_Qtot,
                                                                     Qtot_OUT=self.data_scan_processed.PMT_OUT_Qtot,
-                                                                    stitleinfo=title)
+                                                                    stitleinfo=title) 
 
             # Print timer value to check how long data recovery,  storage and plotting (if selected) need
             elapsed = time.time() - t

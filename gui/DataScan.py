@@ -93,6 +93,7 @@ class DataScan:
         self.InfoData_AcqDelay = data['InfoData_AcqDelay']
         self.InfoData_HV = data['InfoData_HV']
         self.InfoData_CycleStamp = data['InfoData_CycleStamp']
+        self.InfoData_TimeStamp = data['InfoData_TimeStamp']
         self.InfoData_CycleName = data['InfoData_CycleName']
 
         # Photo-Multipliers

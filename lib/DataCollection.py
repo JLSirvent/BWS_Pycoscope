@@ -273,6 +273,7 @@ class DataCollection(QtCore.QThread):
                          'InfoData_AcqDelay': self.data_scan.InfoData_AcqDelay,
                          'InfoData_CycleName': self.data_scan.InfoData_CycleName,
                          'InfoData_CycleStamp': self.data_scan.InfoData_CycleStamp,
+                         'InfoData_TimeStamp': self.data_scan.InfoData_TimeStamp,
                          'PMT_Fs': self.data_scan.PMT_Fs,
                          'PMT_Factors': self.data_scan.PMT_Factors,
                          'PMT_TimesStart': self.data_scan.PMT_TimesStart,
@@ -332,12 +333,19 @@ class DataCollection(QtCore.QThread):
 
     def updateinfodata(self):
         try:
-            data = sio.loadmat(self.configuration.info_datapath, struct_as_record=False, squeeze_me=True)
-            GenStruct = data['InfoData']
-            self.data_scan.InfoData_Filter_PRO = GenStruct.Filter_PRO
-            self.data_scan.InfoData_HV = GenStruct.HV_PMT
-            self.data_scan.InfoData_AcqDelay = GenStruct.AcqDelay
-            self.data_scan.InfoData_CycleName = GenStruct.cycleName
-            self.data_scan.InfoData_CycleStamp = GenStruct.cycleStamp
+
+            path1 = 'H:/user/j/jsirvent/Work/MD_Scripts/PSB/Auto_Script/test_g.mat'
+            path2 = 'H:/user/j/jsirvent/Work/MD_Scripts/PSB/Auto_Script/test_ts.mat'
+
+            data1 = sio.loadmat(path1, struct_as_record=False, squeeze_me=True)
+            data2 = sio.loadmat(path2, struct_as_record=False, squeeze_me=True)
+
+            self.data_scan.InfoData_Filter_PRO = data1['FW_POSITION_GET']
+            self.data_scan.InfoData_HV = data1['HV_VOLTAGE_GET']
+            self.data_scan.InfoData_AcqDelay = data1['LTIM_ACQDELAY_GET']
+            self.data_scan.InfoData_CycleName = data2['LTIM_CYCLESTAMP']
+            self.data_scan.InfoData_TimeStamp = data2['LTIM_TIMESTAMP']
+            self.data_scan.InfoData_CycleStamp = data2['LTIM_CYCLENAME']
+
         except:
             print('Error updating InfoData')

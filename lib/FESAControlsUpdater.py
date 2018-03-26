@@ -33,7 +33,6 @@ class FESAControlsUpdater(QtCore.QThread):
                 data = sio.loadmat(path, struct_as_record=False, squeeze_me=True)
             except:
                 print('File reading error')
-
             # HV Controls
 
             if data['HV_ENABLE_GET'] == 1:
@@ -98,8 +97,7 @@ class FESAControlsUpdater(QtCore.QThread):
             except:
                 print('Fileb reading error')
 
-            self.tab_buttons_pannel.buttons_pannel.cycle_selector_last_ts.setText('Last CycleStamp:\n' + data2['LTIM_CYCLESTAMP'])
-
+            self.tab_buttons_pannel.buttons_pannel.cycle_selector_last_ts.setText('Last CycleStamp:\n' + str(data2['LTIM_CYCLESTAMP']))
 
 
 

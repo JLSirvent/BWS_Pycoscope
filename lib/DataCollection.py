@@ -266,7 +266,6 @@ class DataCollection(QtCore.QThread):
 
             # SAVE DATA IN MAT FORMAT
             # TimeStamping on file name
-
             self.updateinfodata()
 
             self.notifyState.emit('Saving...')

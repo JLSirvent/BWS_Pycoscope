@@ -66,7 +66,6 @@ class DataScan_Processed:
 
 
     def process_data(self,data_scan,configuration):
-
         try:
             P = ops_processing.process_position(data_scan.PS_PSA_IN, configuration, data_scan.PS_Fs,
                                                 1e-3*data_scan.PS_TimesStart[0], return_processing=True)
@@ -110,7 +109,6 @@ class DataScan_Processed:
                 PMTD = 1e3 * data_scan.PMT_PMTD_IN * data_scan.PMT_Factors[3]
                 TimeStart = data_scan.PMT_TimesStart[0]
 
-
             else:
                 PMTA = 1e3 * data_scan.PMT_PMTA_OUT * data_scan.PMT_Factors[0]
                 PMTB = 1e3 * data_scan.PMT_PMTB_OUT * data_scan.PMT_Factors[1]
@@ -134,7 +132,6 @@ class DataScan_Processed:
                                                                         1.0*TimeStart,
                                                                         configuration.pmt_filterfreq_profile,
                                                                         configuration.pmt_downsample_profile)
-
                     I_max = abs(np.max(PMT) - np.min(PMT))/50                   # in mA
                     Q_tot = 1e3*(abs(np.sum(PMT))/50) * (1/data_scan.PMT_Fs)    # in uC
 

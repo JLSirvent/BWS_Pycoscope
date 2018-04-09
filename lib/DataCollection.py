@@ -146,8 +146,8 @@ class DataCollection(QtCore.QThread):
             # Trigger configuration of both scopes
             triggerChannel = self.ps_picoscope.m.TriggerChannels.Aux
             direction = self.ps_picoscope.m.ThresholdDirections.rising
-            thresholdVoltage = 0.5
-            Wait = 5000
+            thresholdVoltage = 1.5
+            Wait = 0
 
             status_trigger = self.ps_picoscope.set_simple_trigger(enabled=True, source=triggerChannel, threshold=thresholdVoltage, direction=direction, waitfor=Wait)
             status_trigger = self.pmt_picoscope.set_simple_trigger(enabled=True, source=triggerChannel, threshold=thresholdVoltage, direction=direction, waitfor=Wait)

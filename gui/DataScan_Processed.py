@@ -66,6 +66,7 @@ class DataScan_Processed:
 
 
     def process_data(self,data_scan,configuration):
+
         try:
             P = ops_processing.process_position(data_scan.PS_PSA_IN, configuration, data_scan.PS_Fs,
                                                 1e-3*data_scan.PS_TimesStart[0], return_processing=True)
@@ -108,6 +109,7 @@ class DataScan_Processed:
                 PMTC = 1e3 * data_scan.PMT_PMTC_IN * data_scan.PMT_Factors[2]
                 PMTD = 1e3 * data_scan.PMT_PMTD_IN * data_scan.PMT_Factors[3]
                 TimeStart = data_scan.PMT_TimesStart[0]
+
 
             else:
                 PMTA = 1e3 * data_scan.PMT_PMTA_OUT * data_scan.PMT_Factors[0]

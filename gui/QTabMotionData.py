@@ -109,6 +109,13 @@ class plot(mplCanvas.mplCanvas):
 
 
             try:
+                # Manually invert sensors
+                #Pos_A1 = Pos_B
+                #Pos_B1 = Pos_A
+
+                #Pos_A = Pos_A1
+                #Pos_B = Pos_B1
+
                 if Scan == 'OUT':
                     Pos_A[1] = np.pi/2 - Pos_A[1]
                     Pos_B[1] = np.pi/2 - Pos_B[1]

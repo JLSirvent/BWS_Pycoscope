@@ -202,7 +202,7 @@ class QMain(QWidget):
         except:
             title = ''
 
-        if self.tab_buttons_pannel.buttons_pannel.updater_raw.isChecked() | self.tab_buttons_pannel.buttons_pannel.updater_motion.isChecked() | self.tab_buttons_pannel.buttons_pannel.updater_profile.isChecked():
+        if self.tab_buttons_pannel.buttons_pannel.updater_raw.isChecked() | self.tab_buttons_pannel.buttons_pannel.updater_motion.isChecked() | self.tab_buttons_pannel.buttons_pannel.updater_profile.isChecked() | self.tab_buttons_pannel.buttons_pannel.updater_rds.isChecked():
 
             self.data_scan_processed.process_data(self.data_scan, self.configuration)
 
@@ -222,6 +222,9 @@ class QMain(QWidget):
                                                                     Qtot_IN=self.data_scan_processed.PMT_IN_Qtot,
                                                                     Qtot_OUT=self.data_scan_processed.PMT_OUT_Qtot,
                                                                     stitleinfo=title)
+
+            if self.tab_buttons_pannel.buttons_pannel.updater_rds.isChecked():
+                self.plotting_tabs.tab_rds_data.actualise(self.data_scan_processed,self.configuration)
 
     def updateconfiguration(self):
         self.configuration.def_ops_in_start = float(self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_ops_in_start_txt.text())

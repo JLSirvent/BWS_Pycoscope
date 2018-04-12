@@ -5,6 +5,7 @@ import datetime
 import numpy as np
 import scipy.io as sio
 import FESAControlsUpdater
+import copy
 
 from ctypes import *
 from PyQt5 import QtCore
@@ -49,8 +50,10 @@ class DataCollection(QtCore.QThread):
             InRange_PMT = [float(self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_pmt_in_start_txt.text()),
                            float(self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_pmt_in_end_txt.text())]
 
+
             OutRange_PMT = [float(self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_pmt_out_start_txt.text()),
                             float(self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_pmt_out_end_txt.text())]
+
 
             PMT_Ranges = [self.tab_buttons_pannel.buttons_pannel_config.scope_config_box_pmt_ch1.currentIndex() + 1,
                           self.tab_buttons_pannel.buttons_pannel_config.scope_config_box_pmt_ch2.currentIndex() + 1,
@@ -59,6 +62,7 @@ class DataCollection(QtCore.QThread):
 
             Index_Start_In_PMT = int(1e-3 * InRange_PMT[0] * Fs_Pmt)
             Samples_In_PMT = int(1e-3 * (InRange_PMT[1] - InRange_PMT[0]) * Fs_Pmt)
+
             Index_Start_Out_PMT = int(1e-3 * OutRange_PMT[0] * Fs_Pmt)
             Samples_Out_PMT = int(1e-3 * (OutRange_PMT[1] - OutRange_PMT[0]) * Fs_Pmt)
 
@@ -147,7 +151,7 @@ class DataCollection(QtCore.QThread):
             triggerChannel = self.ps_picoscope.m.TriggerChannels.Aux
             direction = self.ps_picoscope.m.ThresholdDirections.rising
             thresholdVoltage = 1.5
-            Wait = 10
+            Wait = 0
 
             status_trigger = self.ps_picoscope.set_simple_trigger(enabled=True, source=triggerChannel, threshold=thresholdVoltage, direction=direction, waitfor=Wait)
             status_trigger = self.pmt_picoscope.set_simple_trigger(enabled=True, source=triggerChannel, threshold=thresholdVoltage, direction=direction, waitfor=Wait)
@@ -198,7 +202,10 @@ class DataCollection(QtCore.QThread):
             self.data_scan.PS_TimesStart = [InRange_OPS[0],OutRange_OPS[0]]
 
             overvoltaged = c_int16(0)
+
+
             # OPS IN
+            print(Index_Start_In_OPS)
             status_read = self.ps_picoscope._get_values(start=Index_Start_In_OPS,
                                                         ref_samples=byref(c_uint32(Samples_In_OPS)),
                                                         ratio=1,
@@ -206,13 +213,12 @@ class DataCollection(QtCore.QThread):
                                                         segment=0,
                                                         ref_overflow=byref(overvoltaged))
 
-            self.data_scan.PS_PSA_IN = data_ops[0]['max'][0:Samples_In_OPS]
-            self.data_scan.PS_PSB_IN = data_ops[1]['max'][0:Samples_In_OPS]
-
-            #plt.plot(np.asarray(self.data_scan.PS_PSA_IN))
-            #plt.show()
+            self.data_scan.PS_PSA_IN = copy.deepcopy(data_ops[0]['max'][0:Samples_In_OPS])
+            self.data_scan.PS_PSB_IN = copy.deepcopy(data_ops[1]['max'][0:Samples_In_OPS])
+            self.ps_picoscope.release_all_buffers()
 
             # OPS Out
+            print(Index_Start_Out_OPS)
             status_read = self.ps_picoscope._get_values(start=Index_Start_Out_OPS,
                                                         ref_samples=byref(c_uint32(Samples_Out_OPS)),
                                                         ratio=1,
@@ -220,10 +226,9 @@ class DataCollection(QtCore.QThread):
                                                         segment=0,
                                                         ref_overflow=byref(overvoltaged))
 
-            print(Index_Start_Out_OPS)
-            self.data_scan.PS_PSA_OUT = data_ops[0]['max'][0:Samples_Out_OPS]
-            self.data_scan.PS_PSB_OUT = data_ops[1]['max'][0:Samples_Out_OPS]
-
+            self.data_scan.PS_PSA_OUT = copy.deepcopy(data_ops[0]['max'][0:Samples_Out_OPS])
+            self.data_scan.PS_PSB_OUT = copy.deepcopy(data_ops[1]['max'][0:Samples_Out_OPS])
+            self.ps_picoscope.release_all_buffers()
 
             # Recover info into bufffers: PMT
             self.data_scan.PMT_Factors = [self.pmt_picoscope.m.Ranges.values[
@@ -242,28 +247,30 @@ class DataCollection(QtCore.QThread):
             status_read = self.pmt_picoscope._get_values(start=Index_Start_In_PMT,
                                                          ref_samples=byref(c_uint32(Samples_In_PMT)),
                                                          ratio=1,
-                                                         mode=self.pmt_picoscope.m.RatioModes.none,
+                                                         mode=self.pmt_picoscope.m.RatioModes.raw,
                                                          segment=0,
                                                          ref_overflow=byref(overvoltaged))
+            print(Index_Start_In_PMT)
+
             print(status_read)
-            self.data_scan.PMT_PMTA_IN = data_pmt[0]['max'][0:Samples_In_PMT]
-            self.data_scan.PMT_PMTB_IN = data_pmt[1]['max'][0:Samples_In_PMT]
-            self.data_scan.PMT_PMTC_IN = data_pmt[2]['max'][0:Samples_In_PMT]
-            self.data_scan.PMT_PMTD_IN = data_pmt[3]['max'][0:Samples_In_PMT]
+            self.data_scan.PMT_PMTA_IN = copy.deepcopy(data_pmt[0]['max'][0:Samples_In_PMT])
+            self.data_scan.PMT_PMTB_IN = copy.deepcopy(data_pmt[1]['max'][0:Samples_In_PMT])
+            self.data_scan.PMT_PMTC_IN = copy.deepcopy(data_pmt[2]['max'][0:Samples_In_PMT])
+            self.data_scan.PMT_PMTD_IN = copy.deepcopy(data_pmt[3]['max'][0:Samples_In_PMT])
 
 
             # PMT Out
             status_read = self.pmt_picoscope._get_values(start=Index_Start_Out_PMT,
                                                          ref_samples=byref(c_uint32(Samples_Out_PMT)),
                                                          ratio=1,
-                                                         mode=self.pmt_picoscope.m.RatioModes.none,
+                                                         mode=self.pmt_picoscope.m.RatioModes.raw,
                                                          segment=0,
                                                          ref_overflow=byref(overvoltaged))
 
-            self.data_scan.PMT_PMTA_OUT = data_pmt[0]['max'][0:Samples_Out_PMT]
-            self.data_scan.PMT_PMTB_OUT = data_pmt[1]['max'][0:Samples_Out_PMT]
-            self.data_scan.PMT_PMTC_OUT = data_pmt[2]['max'][0:Samples_Out_PMT]
-            self.data_scan.PMT_PMTD_OUT = data_pmt[3]['max'][0:Samples_Out_PMT]
+            self.data_scan.PMT_PMTA_OUT = copy.deepcopy(data_pmt[0]['max'][0:Samples_Out_PMT])
+            self.data_scan.PMT_PMTB_OUT = copy.deepcopy(data_pmt[1]['max'][0:Samples_Out_PMT])
+            self.data_scan.PMT_PMTC_OUT = copy.deepcopy(data_pmt[2]['max'][0:Samples_Out_PMT])
+            self.data_scan.PMT_PMTD_OUT = copy.deepcopy(data_pmt[3]['max'][0:Samples_Out_PMT])
 
             # SAVE DATA IN MAT FORMAT
             # TimeStamping on file name

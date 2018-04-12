@@ -27,7 +27,7 @@
 from __future__ import unicode_literals
 
 import sys
-import QTabProcessedProfiles, QTabRawData, QTabMotionData
+import QTabProcessedProfiles, QTabRawData, QTabMotionData, QTabRDS
 
 from PyQt5.QtWidgets import QTabWidget, QApplication
 
@@ -41,10 +41,12 @@ class QTabWidgetPlotting(QTabWidget):
         self.tab_processed_profiles = QTabProcessedProfiles.QtabProcessedProfiles()
         self.tab_raw_data = QTabRawData.QTabRawData()
         self.tab_motion_data = QTabMotionData.QTabMotionData()
+        self.tab_rds_data = QTabRDS.QTabRDS()
 
         self.addTab(self.tab_processed_profiles, "Processed Beam Profiles")
         self.addTab(self.tab_raw_data, "Raw Data")
         self.addTab(self.tab_motion_data, "Motion Data")
+        self.addTab(self.tab_rds_data,"RDS")
 
         # self.setFixedWidth(800)
         # self.setFixedHeight(800)

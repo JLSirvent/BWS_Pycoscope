@@ -85,6 +85,7 @@ class QButtonsSet(QWidget):
         self.updater_profile = QCheckBox('Profile')
         self.updater_raw = QCheckBox('Raw')
         self.updater_motion = QCheckBox('Motion')
+        self.updater_rds = QCheckBox('RDS')
 
         self.dataset_box = QGroupBox('Available Dataset')
         self.dataset_list = QListWidget()
@@ -134,6 +135,7 @@ class QButtonsSet(QWidget):
         self.updater_box_layout.addWidget(self.updater_profile)
         self.updater_box_layout.addWidget(self.updater_raw)
         self.updater_box_layout.addWidget(self.updater_motion)
+        self.updater_box_layout.addWidget(self.updater_rds)
         self.updater_box.setLayout(self.updater_box_layout)
 
         # FileList

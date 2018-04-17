@@ -106,18 +106,18 @@ class plot(mplCanvas.mplCanvas):
         try:
             Amplitude = np.max(self.y_SA_IN)
             Offset = np.min(self.y_SA_IN)
+
+            Amplit = self.SA_IN_P[3] * Amplitude + Offset
+            SNR = np.mean(Amplit) / np.std(Amplit)
+
             ax1.plot(self.x_IN, self.y_SA_IN, linewidth=0.5)
-            ax1.plot( self.SA_IN_P[2],  self.SA_IN_P[3]*Amplitude+Offset, '.', markersize=2)
+            ax1.plot( self.SA_IN_P[2],  self.SA_IN_P[3]*Amplitude+Offset, '.', markersize=2, label = 'SNRy:'+ str(SNR))
             ax1.plot( self.SA_IN_P[4],  self.SA_IN_P[5]*Amplitude+Offset, '.', markersize=2)
             ax1.plot( self.SA_IN_P[6],  self.SA_IN_P[7]*Amplitude+Offset, '-', linewidth=0.5, color='black')
             refX = self.SA_IN_P[9]
             refY = self.y_SA_IN[np.where(self.x_IN > refX)[0][0]]
             ax1.plot(refX, refY, '.', markersize=5, color='#f93eed')
-
-            Amplit = self.SA_IN_P[3] * Amplitude + Offset
-            SNR = np.mean(Amplit)/np.std(Amplit)
-            ax1.legend('SNRy:'+ str(SNR))
-
+            ax1.legend()
             ax1.set_title('OPS - SA IN')
             ax1.set_xlabel('Time [ms]')
             ax1.set_ylabel('Amplitude [mV]')
@@ -127,18 +127,16 @@ class plot(mplCanvas.mplCanvas):
         try:
             Amplitude = np.max(self.y_SA_OUT)
             Offset = np.min(self.y_SA_OUT)
+            Amplit = self.SA_OUT_P[3] * Amplitude + Offset
+            SNR = np.mean(Amplit)/np.std(Amplit)
             ax2.plot(self.x_OUT, self.y_SA_OUT, linewidth=0.5)
-            ax2.plot( self.SA_OUT_P[2],  self.SA_OUT_P[3]*Amplitude+Offset, '.', markersize=2)
+            ax2.plot( self.SA_OUT_P[2],  self.SA_OUT_P[3]*Amplitude+Offset, '.', markersize=2, label = 'SNRy:'+ str(SNR))
             ax2.plot( self.SA_OUT_P[4],  self.SA_OUT_P[5]*Amplitude+Offset, '.', markersize=2)
             ax2.plot( self.SA_OUT_P[6],  self.SA_OUT_P[7]*Amplitude+Offset, '-', linewidth=0.5, color='black')
             refX = self.SA_OUT_P[9]
             refY = self.y_SA_OUT[np.where(self.x_OUT > refX)[0][0]]
             ax2.plot(refX, refY, '.', markersize=5, color='#f93eed')
-
-            Amplit = self.SA_OUT_P[3] * Amplitude + Offset
-            SNR = np.mean(Amplit)/np.std(Amplit)
-            ax2.legend('SNRy:'+ str(SNR))
-
+            ax2.legend()
             ax2.set_title('OPS - SA OUT')
             ax2.set_xlabel('Time [ms]')
             ax2.set_ylabel('Amplitude [mV]')
@@ -148,18 +146,16 @@ class plot(mplCanvas.mplCanvas):
         try:
             Amplitude = np.max(self.y_SB_IN)
             Offset = np.min(self.y_SB_IN)
+            Amplit = self.SB_IN_P[3] * Amplitude + Offset
+            SNR = np.mean(Amplit)/np.std(Amplit)
             ax3.plot(self.x_IN, self.y_SB_IN, linewidth=0.5)
-            ax3.plot(self.SB_IN_P[2], self.SB_IN_P[3] * Amplitude + Offset, '.', markersize=2)
+            ax3.plot(self.SB_IN_P[2], self.SB_IN_P[3] * Amplitude + Offset, '.', markersize=2, label = 'SNRy:'+ str(SNR))
             ax3.plot(self.SB_IN_P[4], self.SB_IN_P[5] * Amplitude + Offset, '.', markersize=2)
             ax3.plot(self.SB_IN_P[6], self.SB_IN_P[7] * Amplitude + Offset, '-', linewidth=0.5, color='black')
             refX = self.SB_IN_P[9]
             refY = self.y_SB_IN[np.where(self.x_IN > refX)[0][0]]
             ax3.plot(refX, refY, '.', markersize=5, color='#f93eed')
-
-            Amplit = self.SB_IN_P[3] * Amplitude + Offset
-            SNR = np.mean(Amplit)/np.std(Amplit)
-            ax3.legend('SNRy:'+ str(SNR))
-
+            ax3.legend()
             ax3.set_title('OPS - SB IN')
             ax3.set_xlabel('Time [ms]')
             ax3.set_ylabel('Amplitude [mV]')
@@ -169,18 +165,16 @@ class plot(mplCanvas.mplCanvas):
         try:
             Amplitude = np.max(self.y_SB_OUT)
             Offset = np.min(self.y_SB_OUT)
+            Amplit = self.SB_OUT_P[3] * Amplitude + Offset
+            SNR = np.mean(Amplit)/np.std(Amplit)
             ax4.plot(self.x_OUT, self.y_SB_OUT, linewidth=0.5)
-            ax4.plot(self.SB_OUT_P[2], self.SB_OUT_P[3] * Amplitude + Offset, '.', markersize=2)
+            ax4.plot(self.SB_OUT_P[2], self.SB_OUT_P[3] * Amplitude + Offset, '.', markersize=2, label = 'SNRy:'+ str(SNR))
             ax4.plot(self.SB_OUT_P[4], self.SB_OUT_P[5] * Amplitude + Offset, '.', markersize=2)
             ax4.plot(self.SB_OUT_P[6], self.SB_OUT_P[7] * Amplitude + Offset, '-', linewidth=0.5, color='black')
             refX = self.SB_OUT_P[9]
             refY = self.y_SB_OUT[np.where(self.x_OUT > refX)[0][0]]
             ax4.plot(refX, refY, '.', markersize=5, color='#f93eed')
-
-            Amplit = self.SB_OUT_P[3] * Amplitude + Offset
-            SNR = np.mean(Amplit)/np.std(Amplit)
-            ax4.legend('SNRy:'+ str(SNR))
-
+            ax4.legend()
             ax4.set_title('OPS - SB OUT')
             ax4.set_xlabel('Time [ms]')
             ax4.set_ylabel('Amplitude [mV]')

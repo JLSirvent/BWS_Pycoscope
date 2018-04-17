@@ -130,21 +130,39 @@ def process_position(data, configuration, sampling_frequency, StartTime, showplo
         Data_Pos = Crosingpos[1][:] * AngularIncrement
         # Relative-distances method for slit-loss compensation:
         Distances = np.diff(Crosingpos[0][0:Crosingpos.size - 1])
-        RelDistr = np.divide(Distances[1:Distances.size], Distances[0:Distances.size - 1])
+
+        # Method 2: Considering average of several previous periods
+        previous_periods = 4
+        cnt = 0
+        DistancesAVG = []
+
+        for i in range(previous_periods,len(Distances)):
+            DistancesAVG.append(np.mean(Distances[i-previous_periods:i]))
+
+        RelDistr = np.divide(Distances[previous_periods:len(Distances)], DistancesAVG)
+
+        # Method 1: Only consider previous transition
+        #RelDistr = np.divide(Distances[1:Distances.size], Distances[0:Distances.size - 1])
+
         # Search of compensation points:
         PointsCompensation = np.where(RelDistr >= rdcp[0])[0]
 
         for b in np.arange(0, PointsCompensation.size):
 
-            if RelDistr[PointsCompensation[b]] >= rdcp[1]:
-                # These are the references
-                Data_Pos[(PointsCompensation[b] + 2):Data_Pos.size] = Data_Pos[(
-                    PointsCompensation[b] + 2):Data_Pos.size] + 2 * AngularIncrement
+            if RelDistr[PointsCompensation[b]] >= rdcp[2]:
+                # These are the references (metallic disk) or 3 slit loses
+                Data_Pos[(PointsCompensation[b] + 1 + previous_periods):Data_Pos.size] = Data_Pos[(
+                    PointsCompensation[b] + 1 + previous_periods):Data_Pos.size] + 3 * AngularIncrement
 
-            elif RelDistr[PointsCompensation[b]] >= rdcp[0] and RelDistr[PointsCompensation[b]] <= rdcp[1]:
+            elif RelDistr[PointsCompensation[b]] >= rdcp[1]:
+                # These are 2 slit loses
+                Data_Pos[(PointsCompensation[b] + 1 + previous_periods):Data_Pos.size] = Data_Pos[(
+                    PointsCompensation[b] + 1 + previous_periods):Data_Pos.size] + 2 * AngularIncrement
+
+            elif RelDistr[PointsCompensation[b]] >= rdcp[0]:
                 # These are 1 slit losses
-                Data_Pos[(PointsCompensation[b] + 2):Data_Pos.size] = Data_Pos[(
-                    PointsCompensation[b] + 2):Data_Pos.size] + 1 * AngularIncrement
+                Data_Pos[(PointsCompensation[b] + 1 + previous_periods):Data_Pos.size] = Data_Pos[(
+                    PointsCompensation[b] + 1 + previous_periods):Data_Pos.size] + 1 * AngularIncrement
 
         # ==========================================================================
         # Alignment to First reference and Storage
@@ -158,7 +176,7 @@ def process_position(data, configuration, sampling_frequency, StartTime, showplo
         Offset = np.where(Data_Time[0:Data_Time.size - 1] + StartTime > (Rtiming / 1000))[0][0]
 
         try:
-            _IndexRef1 = Offset + np.where(RelDistr[Offset:LengthMin - Offset] > rdcp[1])[0]
+            _IndexRef1 = Offset + np.where(RelDistr[Offset:LengthMin - Offset] > rdcp[2])[0]
             IndexRef1 = _IndexRef1[0]
             Data_Pos = Data_Pos - Data_Pos[IndexRef1]
         except:

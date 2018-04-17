@@ -139,12 +139,14 @@ class plot(mplCanvas.mplCanvas):
             Amplitude = np.max(self.y_SB_IN)
             Offset = np.min(self.y_SB_IN)
             ax3.plot(self.x_IN, self.y_SB_IN, linewidth=0.5)
-            ax3.plot(self.SB_IN_P[2], self.SB_IN_P[3] * Amplitude + Offset, '.', markersize=2)
+            #ax3.plot(self.SB_IN_P[2], self.SB_IN_P[3] * Amplitude + Offset, '.', markersize=2)
             ax3.plot(self.SB_IN_P[4], self.SB_IN_P[5] * Amplitude + Offset, '.', markersize=2)
             ax3.plot(self.SB_IN_P[6], self.SB_IN_P[7] * Amplitude + Offset, '-', linewidth=0.5, color='black')
             refX = self.SB_IN_P[9]
             refY = self.y_SB_IN[np.where(self.x_IN > refX)[0][0]]
             ax3.plot(refX, refY, '.', markersize=5, color='#f93eed')
+            #Amplit=
+            ax3.legend("SNR")
             ax3.set_title('OPS - SB IN')
             ax3.set_xlabel('Time [ms]')
             ax3.set_ylabel('Amplitude [mV]')

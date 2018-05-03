@@ -146,8 +146,8 @@ class plot(mplCanvas.mplCanvas):
         try:
             Amplitude = np.max(self.y_SB_IN)
             Offset = np.min(self.y_SB_IN)
-            Amplit = self.SB_IN_P[3] * Amplitude + Offset
-            SNR = np.mean(Amplit)/np.std(Amplit)
+            Amplit_top = self.SB_IN_P[3] * Amplitude + Offset
+            SNR = np.mean(Amplit_top)/np.std(Amplit_top)
             ax3.plot(self.x_IN, self.y_SB_IN, linewidth=0.5)
             ax3.plot(self.SB_IN_P[2], self.SB_IN_P[3] * Amplitude + Offset, '.', markersize=2, label = 'SNRy:'+ str(SNR))
             ax3.plot(self.SB_IN_P[4], self.SB_IN_P[5] * Amplitude + Offset, '.', markersize=2)

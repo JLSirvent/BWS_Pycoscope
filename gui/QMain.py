@@ -32,7 +32,7 @@ import datetime
 import numpy as np
 import scipy.io as sio
 import matplotlib.pyplot as plt
-import Configuration, DataScan, QButtonsSet, QLogDialog, utils, QTabWidgetPlotting, DataCollection, DataScan_Processed, QTabWidgetButtons, FESAControlsUpdater
+import Configuration, DataScan, QButtonsSet, QLogDialog, utils, QTabWidgetPlotting, DataCollection, DataCollection_VFC, DataScan_Processed, QTabWidgetButtons, FESAControlsUpdater
 
 from ctypes import *
 from picosdk import ps6000
@@ -135,8 +135,8 @@ class QMain(QWidget):
         self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_ops_out_ref_txt.editingFinished.connect(self.updateconfiguration)
 
         # FESA Controls Updater
-        self.controls_update = FESAControlsUpdater.FESAControlsUpdater(tab_buttons_pannel = self.tab_buttons_pannel)
-        self.controls_update.start()
+        #self.controls_update = FESAControlsUpdater.FESAControlsUpdater(tab_buttons_pannel = self.tab_buttons_pannel)
+        #self.controls_update.start()
 
 
     def connectScope(self):
@@ -160,7 +160,7 @@ class QMain(QWidget):
 
 
     def acquisitions_thread(self):
-        self.data_collection = DataCollection.DataCollection(configuration=self.configuration,
+        self.data_collection = DataCollection_VFC.DataCollection_VFC(configuration=self.configuration,
                                                              data_scan=self.data_scan,
                                                              tab_buttons_pannel=self.tab_buttons_pannel,
                                                              ps_picoscope=self.ps_picoscope,

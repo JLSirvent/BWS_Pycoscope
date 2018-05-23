@@ -351,9 +351,8 @@ class DataCollection(QtCore.QThread):
 
     def updateinfodata(self):
         try:
-
-            path1 = 'H:/user/j/jsirvent/Work/MD_Scripts/PSB/Auto_Script/test_g.mat'
-            path2 = 'H:/user/j/jsirvent/Work/MD_Scripts/PSB/Auto_Script/test_ts.mat'
+            path1 = self.configuration.info_datapath + '/test_g.mat'
+            path2 = self.configuration.info_datapath + '/test_ts.mat'
 
             data1 = sio.loadmat(path1, struct_as_record=False, squeeze_me=True)
             data2 = sio.loadmat(path2, struct_as_record=False, squeeze_me=True)

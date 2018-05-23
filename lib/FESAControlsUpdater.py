@@ -16,22 +16,21 @@ class FESAControlsUpdater(QtCore.QThread):
     notifyState = QtCore.pyqtSignal(str)
     fileReady = QtCore.pyqtSignal(str)
 
-    def __init__(self, tab_buttons_pannel, parent=None):
+    def __init__(self, tab_buttons_pannel, path, parent=None):
 
         self.tab_buttons_pannel = tab_buttons_pannel
-
+        self.path0 = path
         super(FESAControlsUpdater, self).__init__(parent)
 
     def run(self):
 
         while True:
             time.sleep(0.5)
-            path = 'H:/user/j/jsirvent/Work/MD_Scripts/PSB/Auto_Script/test_g.mat'
-            path2 = 'H:/user/j/jsirvent/Work/MD_Scripts/PSB/Auto_Script/test_ts.mat'
+            path = self.path0 + '/test_g.mat'
+            path2 = self.path0 + '/test_ts.mat'
 
             try:
                 data = sio.loadmat(path, struct_as_record=False, squeeze_me=True)
-
 
                 # HV Controls
 
@@ -102,8 +101,9 @@ class FESAControlsUpdater(QtCore.QThread):
                 print('Info file #2 reading error on AFS')
 
 
-def SendFESAcommands(tab_buttons_pannel, action=''):
-    path = 'H:/user/j/jsirvent/Work/MD_Scripts/PSB/Auto_Script/test_s.mat'
+def SendFESAcommands(tab_buttons_pannel, path, action=''):
+
+    path = '/test_s.mat'
     data = sio.loadmat(path, struct_as_record=False, squeeze_me=True)
 
     if action == 'HV_ONOFF':

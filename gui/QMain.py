@@ -134,9 +134,9 @@ class QMain(QWidget):
         self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_ops_in_ref_txt.editingFinished.connect(self.updateconfiguration)
         self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_ops_out_ref_txt.editingFinished.connect(self.updateconfiguration)
 
-        # FESA Controls Updater
-        #self.controls_update = FESAControlsUpdater.FESAControlsUpdater(tab_buttons_pannel = self.tab_buttons_pannel)
-        #self.controls_update.start()
+        # FESA Controls Updat
+        self.controls_update = FESAControlsUpdater.FESAControlsUpdater(tab_buttons_pannel = self.tab_buttons_pannel, path = self.configuration.info_datapath)
+        self.controls_update.start()
 
 
     def connectScope(self):
@@ -244,20 +244,20 @@ class QMain(QWidget):
         self.deleteLater()
 
     def HV_ONOFF(self):
-        FESAControlsUpdater.SendFESAcommands(tab_buttons_pannel=self.tab_buttons_pannel, action='HV_ONOFF')
+        FESAControlsUpdater.SendFESAcommands(tab_buttons_pannel=self.tab_buttons_pannel, action='HV_ONOFF', path = self.configuration.info_datapath)
 
     def FW_ONOFF(self):
-        FESAControlsUpdater.SendFESAcommands(tab_buttons_pannel=self.tab_buttons_pannel, action='FW_ONOFF')
+        FESAControlsUpdater.SendFESAcommands(tab_buttons_pannel=self.tab_buttons_pannel, action='FW_ONOFF', path = self.configuration.info_datapath)
 
     def LTIM_ONOFF(self):
-        FESAControlsUpdater.SendFESAcommands(tab_buttons_pannel=self.tab_buttons_pannel, action='LTIM_ONOFF')
+        FESAControlsUpdater.SendFESAcommands(tab_buttons_pannel=self.tab_buttons_pannel, action='LTIM_ONOFF', path = self.configuration.info_datapath)
 
     def FW_HOME(self):
-        FESAControlsUpdater.SendFESAcommands(tab_buttons_pannel=self.tab_buttons_pannel, action='FW_DoHome')
+        FESAControlsUpdater.SendFESAcommands(tab_buttons_pannel=self.tab_buttons_pannel, action='FW_DoHome', path = self.configuration.info_datapath)
 
     def FESAEditText(self):
         print('hi!')
-        FESAControlsUpdater.SendFESAcommands(tab_buttons_pannel=self.tab_buttons_pannel, action='')
+        FESAControlsUpdater.SendFESAcommands(tab_buttons_pannel=self.tab_buttons_pannel, action='', path = self.configuration.info_datapath)
 
 def main():
     app = QApplication(sys.argv)

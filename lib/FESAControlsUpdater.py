@@ -103,8 +103,7 @@ class FESAControlsUpdater(QtCore.QThread):
 
 def SendFESAcommands(tab_buttons_pannel, path, action=''):
 
-    path = '/test_s.mat'
-    data = sio.loadmat(path, struct_as_record=False, squeeze_me=True)
+    data = sio.loadmat(path + '/test_s.mat', struct_as_record=False, squeeze_me=True)
 
     if action == 'HV_ONOFF':
         if tab_buttons_pannel.buttons_pannel_config.acquisition_config_HV_ONOFF_State.text() == 'OFF':
@@ -147,5 +146,5 @@ def SendFESAcommands(tab_buttons_pannel, path, action=''):
     if action == 'LTIM_OFF':
         data['LTIM_ENABLE_SET'] = 0
 
-    sio.savemat(path, data, do_compression=True)
+    sio.savemat(path + '/test_s.mat', data, do_compression=True)
 

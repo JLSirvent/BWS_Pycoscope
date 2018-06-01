@@ -25,7 +25,7 @@ class FESAControlsUpdater(QtCore.QThread):
     def run(self):
 
         while True:
-            time.sleep(0.5)
+            time.sleep(1)
             path = self.path0 + '/test_g.mat'
             path2 = self.path0 + '/test_ts.mat'
 
@@ -136,7 +136,7 @@ def SendFESAcommands(tab_buttons_pannel, path, action=''):
     data['LTIM_CYCLENAME'] = tab_buttons_pannel.buttons_pannel.cycle_selector_combo.currentText()
 
     try:
-        data['LTIM_ACQDELAY_SET'] = int(float(tab_buttons_pannel.buttons_pannel.cycle_selector_dly_txt.text()))
+        data['LTIM_ACQDELAY_SET'] = float(tab_buttons_pannel.buttons_pannel.cycle_selector_dly_txt.text())
     except:
         data['LTIM_ACQDELAY_SET'] = 0
 

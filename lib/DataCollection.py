@@ -151,7 +151,7 @@ class DataCollection(QtCore.QThread):
             triggerChannel = self.ps_picoscope.m.TriggerChannels.Aux
             direction = self.ps_picoscope.m.ThresholdDirections.rising
             thresholdVoltage = 1.5
-            Wait = 10
+            Wait = 0
 
             status_trigger = self.ps_picoscope.set_simple_trigger(enabled=True, source=triggerChannel, threshold=thresholdVoltage, direction=direction, waitfor=Wait)
             status_trigger = self.pmt_picoscope.set_simple_trigger(enabled=True, source=triggerChannel, threshold=thresholdVoltage, direction=direction, waitfor=Wait)
@@ -173,7 +173,7 @@ class DataCollection(QtCore.QThread):
             self.notifyState.emit('Trig...')
                 # Enable LTIM Output
             try:
-                FESAControlsUpdater.SendFESAcommands(self.tab_buttons_pannel, action='LTIM_ON')
+                FESAControlsUpdater.SendFESAcommands(self.tab_buttons_pannel, action='LTIM_ON', path= self.configuration.info_datapath)
             except:
                 print('Cannot Switch-ON LTIM!')
 
@@ -185,7 +185,7 @@ class DataCollection(QtCore.QThread):
 
                 # Disable LTIM Output
             try:
-                FESAControlsUpdater.SendFESAcommands(self.tab_buttons_pannel, action='LTIM_OFF')
+                FESAControlsUpdater.SendFESAcommands(self.tab_buttons_pannel, action='LTIM_OFF', path= self.configuration.info_datapath)
             except:
                 print('Cannot Switch-OFF LTIM!')
 

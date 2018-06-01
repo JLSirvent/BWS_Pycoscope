@@ -176,7 +176,15 @@ class QButtonsSet(QWidget):
                                                 'PSB.USER.MD5', 'PSB.USER.MD6', 'PSB.USER.NORMGPS', 'PSB.USER.NORMHRS',
                                                 'PSB.USER.SFTPRO1', 'PSB.USER.SFTPRO2', 'PSB.USER.STAGISO', 'PSB.USER.TOF'])
         if config.system == 'PS':
-            self.cycle_selector_combo.addItems(['Select Cycle'])
+            self.cycle_selector_combo.addItems(['CPS.USER.ZERO', 'CPS.USER.AD', 'CPS.USER.EAST1', 'CPS.USER.EAST2',
+                                                'CPS.USER.ION1', 'CPS.USER.ION2', 'CPS.USER.ION3',
+                                                'CPS.USER.LHC1', 'CPS.USER.LHC2', 'CPS.USER.LHC3',
+                                                'CPS.USER.LHC4', 'CPS.USER.LHCINDIV', 'CPS.USER.LHCPROBE',
+                                                'CPS.USER.MD1', 'CPS.USER.MD2', 'CPS.USER.MD3',
+                                                'CPS.USER.MD4', 'CPS.USER.MD5', 'CPS.USER.MD6',
+                                                'CPS.USER.MD7', 'CPS.USER.MD8', 'CPS.USER.SFTPRO1',
+                                                'CPS.USER.SFTPRO2', 'CPS.USER.TOF'])
+
         if config.system == 'SPS':
             self.cycle_selector_combo.addItems(['SPS.USER.ZERO','SPS.USER.AWAKE1', 'SPS.USER.AWAKE2', 'SPS.USER.HIRADMT1',
                                                 'SPS.USER.HIRADMT2', 'SPS.USER.LHC1', 'SPS.USER.LHC2', 'SPS.USER.LHC25NS',

@@ -8,7 +8,7 @@ import utils
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QStackedWidget
 from matplotlib.backends.backend_qt5 import NavigationToolbar2QT as NavigationToolbar
-
+from detect_peaks import detect_peaks
 
 PLOT_WIDTH = 7
 PLOT_HEIGHT = 8
@@ -197,14 +197,24 @@ class plot(mplCanvas.mplCanvas):
 
             for c in range(0,4):
                 try:
-                    PMT= PMT_i[c]
+                    PMT = PMT_i[c]
                     Fs = 1/(1e-3*(PMT_x[1]-PMT_x[0]))
                     Start = PMT_x[0]
 
-                    PMT_f = utils.process_profile(PMT, Fs, Start, configuration.pmt_filterfreq_rawview, configuration.pmt_downsample_rawview)
+                    I_max = 1e3 * (abs(np.max(PMT) - np.min(PMT))/50) / 10   # in uA accounting for amplif
+                    Q_tot = 1e6 * (abs(np.sum(PMT))/50) * (1/Fs) / 10        # in nC accounting for amplif
 
-                    ax_pmt.plot(PMT_f[0], PMT_f[1], color = color[c])
-                    #ax_pmt.plot(PMT_x, PMT, color = color[c])
+                    # This is for processed:
+                    #PMT_f = utils.process_profile(PMT, Fs, Start, configuration.pmt_filterfreq_rawview, configuration.pmt_downsample_rawview)
+                    #ax_pmt.plot(PMT_f[0], PMT_f[1], color=color[c], label='CH'+str(c + 1)+' Imax:{0:.0f}'.format(I_max)+'uA Qtot:{0:.0f}'.format(Q_tot)+'nC')
+
+                    # This is for un-Processed:
+                    #mpd = np.int(1.75e-6*Fs)
+                    #indexes = detect_peaks(PMT,mpd=mpd)
+                    ax_pmt.plot(PMT_x, PMT, color=color[c], label='CH'+str(c + 1)+' Imax:{0:.0f}'.format(I_max)+'uA Qtot:{0:.0f}'.format(Q_tot)+'nC')
+                    #ax_pmt.plot(PMT_x[indexes], PMT[indexes], color=color[c], marker = 'o')
+                    ax_pmt.legend(loc='upper right')
+
                 except:
                     pass
                 ax_pmt.set_title('PMTs ' + s_title)

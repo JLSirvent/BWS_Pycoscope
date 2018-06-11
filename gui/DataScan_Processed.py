@@ -134,7 +134,8 @@ class DataScan_Processed:
                                                                         1.0*TimeStart,
                                                                         configuration.pmt_filterfreq_profile,
                                                                         configuration.pmt_downsample_profile)
-                    I_max = abs(np.max(PMT) - np.min(PMT))/50                   # in mA
+
+                    I_max = (abs(np.max(PMT) - np.min(PMT))/50) / 10                 # in mA accounting for amplif
                     Q_tot = 1e3*(abs(np.sum(PMT))/50) * (1/data_scan.PMT_Fs) / 10    # in uC accounting for amplif
 
                     if i == 0:

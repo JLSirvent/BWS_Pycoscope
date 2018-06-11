@@ -104,18 +104,18 @@ class DataScan_Processed:
 
             if i ==0:
 
-                PMTA = - 1e3 * data_scan.PMT_PMTA_IN * data_scan.PMT_Factors[0]
-                PMTB = - 1e3 * data_scan.PMT_PMTB_IN * data_scan.PMT_Factors[1]
-                PMTC = - 1e3 * data_scan.PMT_PMTC_IN * data_scan.PMT_Factors[2]
-                PMTD = - 1e3 * data_scan.PMT_PMTD_IN * data_scan.PMT_Factors[3]
+                PMTA = 1e3 * data_scan.PMT_PMTA_IN * data_scan.PMT_Factors[0]
+                PMTB = 1e3 * data_scan.PMT_PMTB_IN * data_scan.PMT_Factors[1]
+                PMTC = 1e3 * data_scan.PMT_PMTC_IN * data_scan.PMT_Factors[2]
+                PMTD = 1e3 * data_scan.PMT_PMTD_IN * data_scan.PMT_Factors[3]
                 TimeStart = data_scan.PMT_TimesStart[0]
 
 
             else:
-                PMTA = - 1e3 * data_scan.PMT_PMTA_OUT * data_scan.PMT_Factors[0]
-                PMTB = - 1e3 * data_scan.PMT_PMTB_OUT * data_scan.PMT_Factors[1]
-                PMTC = - 1e3 * data_scan.PMT_PMTC_OUT * data_scan.PMT_Factors[2]
-                PMTD = - 1e3 * data_scan.PMT_PMTD_OUT * data_scan.PMT_Factors[3]
+                PMTA = 1e3 * data_scan.PMT_PMTA_OUT * data_scan.PMT_Factors[0]
+                PMTB = 1e3 * data_scan.PMT_PMTB_OUT * data_scan.PMT_Factors[1]
+                PMTC = 1e3 * data_scan.PMT_PMTC_OUT * data_scan.PMT_Factors[2]
+                PMTD = 1e3 * data_scan.PMT_PMTD_OUT * data_scan.PMT_Factors[3]
                 TimeStart = data_scan.PMT_TimesStart[1]
 
             for c in range(0,4):
@@ -135,7 +135,7 @@ class DataScan_Processed:
                                                                         configuration.pmt_filterfreq_profile,
                                                                         configuration.pmt_downsample_profile)
                     I_max = abs(np.max(PMT) - np.min(PMT))/50                   # in mA
-                    Q_tot = 1e3*(abs(np.sum(PMT))/50) * (1/data_scan.PMT_Fs)    # in uC
+                    Q_tot = 1e3*(abs(np.sum(PMT))/50) * (1/data_scan.PMT_Fs) / 10    # in uC accounting for amplif
 
                     if i == 0:
                         self.PMT_IN[c] = Procesed_Profile

@@ -41,6 +41,24 @@ def butter_lowpass_filter(data, cutoff, fs, order=5):
     y = signal.filtfilt(b, a, data)
     return y
 
+def butter_highpass(cutoff, fs, order=5):
+    """
+    Matlab butter style filter design
+    """
+    nyq = 0.5 * fs
+    normal_cutoff = cutoff / nyq
+    b, a = signal.butter(order, normal_cutoff, btype='high', analog=False)
+    return b, a
+
+def butter_highpass_filter(data, cutoff, fs, order=5):
+    """
+    Low pass filtering of data using butter filter
+    """
+    b, a = butter_highpass(cutoff, fs, order=order)
+    y = signal.filtfilt(b, a, data)
+    return y
+
+
 def resample(data_B, data_A):
     """
     Resample data_B ([timeB][dataB]) wrt data_A time ([timeA][dataB])
@@ -125,9 +143,24 @@ def peakdet(v, delta, x=None):
 
     return array(maxtab), array(mintab)
 
-def process_profile(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample):
+def process_profile_old(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample):
 
     Time = TimeStart + 1e3*(np.arange(0,Amplit.size,1) / SamplingFreq)
+    Amplit = butter_lowpass_filter(Amplit, FilterFreq, SamplingFreq, order=3)
+
+    Amplit_p = Amplit[::Downsample]
+    Time_p = Time[::Downsample]
+
+    return [Time_p, Amplit_p]
+
+def process_profile(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample):
+
+    FilterFreq1 = 9e6
+    Time = TimeStart + 1e3*(np.arange(0,Amplit.size,1) / SamplingFreq)
+    Amplit = butter_highpass_filter(Amplit, FilterFreq1, SamplingFreq, order=1)
+
+    Amplit[Amplit<0] = 0
+
     Amplit = butter_lowpass_filter(Amplit, FilterFreq, SamplingFreq, order=3)
 
     Amplit_p = Amplit[::Downsample]

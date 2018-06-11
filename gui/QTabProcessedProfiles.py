@@ -91,7 +91,7 @@ class plot(mplCanvas.mplCanvas):
                 return y
             for c in range(0,4):
                 try:
-                    _x = 1e3 * np.asarray(x[1])
+                    _x = np.asarray(x[1])
                     _y = np.asarray(y[c][1])
                     a = np.max(_y) - np.min(_y)
                     mean = _x[np.where(_y == np.max(_y))[0]]

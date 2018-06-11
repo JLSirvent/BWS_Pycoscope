@@ -287,8 +287,8 @@ def plot_position_summary(configuration, projected = False):
             except:
                 pass
 
-            if s == 6:
-                break
+                #if s == 6:
+                #break
 
     superplot.tight_layout()
     plt.show()
@@ -298,9 +298,8 @@ configuration = Configuration.Configuration()
 
 # Make file list from folder content (sorted)
 file_list = utils.mat_list_from_folder_sorted(configuration.app_datapath)
-
 # Process position data and save on files
 #process_ops_and_save(configuration, file_list)
 
 # Plot data analysis
-plot_position_summary(configuration,projected = False)
+plot_position_summary(configuration,projected = True)

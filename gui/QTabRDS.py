@@ -76,13 +76,13 @@ class plot(mplCanvas.mplCanvas):
                     Scan = 'IN'
                     TimesA = self.TimesAIn
                     TimesB = self.TimesBIn
-                    Tlim = 32
+                    Tlim = 50
                 else:
                     ax = ax2
                     Scan = 'OUT'
                     TimesA = self.TimesAOut
                     TimesB = self.TimesBOut
-                    Tlim = 340
+                    Tlim = 410
 
                 offset = 100
 

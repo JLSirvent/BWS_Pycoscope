@@ -48,16 +48,16 @@ class QTabRawData(QWidget):
         self.plot.SB_OUT_P = Data_processed.PS_POSB_OUT_P
         self.plot.x_OUT = Data.PS_TimesStart[1] + 1e3*(1.0*np.asarray(range(0,len(Data.PS_PSA_OUT))) / Data.PS_Fs)
 
-        self.plot.y_PMTA_IN = - 1e3 * Data.PMT_PMTA_IN * Data.PMT_Factors[0]
-        self.plot.y_PMTB_IN = - 1e3 * Data.PMT_PMTB_IN * Data.PMT_Factors[1]
-        self.plot.y_PMTC_IN = - 1e3 * Data.PMT_PMTC_IN * Data.PMT_Factors[2]
-        self.plot.y_PMTD_IN = - 1e3 * Data.PMT_PMTD_IN * Data.PMT_Factors[3]
+        self.plot.y_PMTA_IN = 1e3 * Data.PMT_PMTA_IN * Data.PMT_Factors[0]
+        self.plot.y_PMTB_IN = 1e3 * Data.PMT_PMTB_IN * Data.PMT_Factors[1]
+        self.plot.y_PMTC_IN = 1e3 * Data.PMT_PMTC_IN * Data.PMT_Factors[2]
+        self.plot.y_PMTD_IN = 1e3 * Data.PMT_PMTD_IN * Data.PMT_Factors[3]
         self.plot.x_PMT_IN = Data.PMT_TimesStart[0] + 1e3*(1.0*np.asarray(range(0,len(Data.PMT_PMTA_IN))) / Data.PMT_Fs)
 
-        self.plot.y_PMTA_OUT = - 1e3 * Data.PMT_PMTA_OUT * Data.PMT_Factors[0]
-        self.plot.y_PMTB_OUT = - 1e3 * Data.PMT_PMTB_OUT * Data.PMT_Factors[1]
-        self.plot.y_PMTC_OUT = - 1e3 * Data.PMT_PMTC_OUT * Data.PMT_Factors[2]
-        self.plot.y_PMTD_OUT = - 1e3 * Data.PMT_PMTD_OUT * Data.PMT_Factors[3]
+        self.plot.y_PMTA_OUT = 1e3 * Data.PMT_PMTA_OUT * Data.PMT_Factors[0]
+        self.plot.y_PMTB_OUT = 1e3 * Data.PMT_PMTB_OUT * Data.PMT_Factors[1]
+        self.plot.y_PMTC_OUT = 1e3 * Data.PMT_PMTC_OUT * Data.PMT_Factors[2]
+        self.plot.y_PMTD_OUT = 1e3 * Data.PMT_PMTD_OUT * Data.PMT_Factors[3]
         self.plot.x_PMT_OUT = Data.PMT_TimesStart[1] + 1e3*(1.0*np.asarray(range(0,len(Data.PMT_PMTA_OUT))) / Data.PMT_Fs)
 
         self.plot.compute_initial_figure(Configuration)
@@ -200,7 +200,9 @@ class plot(mplCanvas.mplCanvas):
                     PMT= PMT_i[c]
                     Fs = 1/(1e-3*(PMT_x[1]-PMT_x[0]))
                     Start = PMT_x[0]
+
                     PMT_f = utils.process_profile(PMT, Fs, Start, configuration.pmt_filterfreq_rawview, configuration.pmt_downsample_rawview)
+
                     ax_pmt.plot(PMT_f[0], PMT_f[1], color = color[c])
                     #ax_pmt.plot(PMT_x, PMT, color = color[c])
                 except:

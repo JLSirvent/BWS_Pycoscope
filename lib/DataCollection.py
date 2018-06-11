@@ -195,7 +195,7 @@ class DataCollection(QtCore.QThread):
             self.notifyState.emit('Rec...')
             # Recover info into bufffers: OPS
             self.data_scan.PS_Factors =[self.ps_picoscope.m.Ranges.values[
-                                        self.ps_picoscope._channel_set[0].range]/self.ps_picoscope.info.max_adc,
+                                        self.ps_picoscope._channel_set[0].range] / self.ps_picoscope.info.max_adc,
                                         self.ps_picoscope.m.Ranges.values[
                                         self.ps_picoscope._channel_set[1].range] / self.ps_picoscope.info.max_adc]
             self.data_scan.PS_Fs = Fs_Ops

@@ -118,7 +118,13 @@ class QButtonsSet_Configuration(QWidget):
         self.acquisition_config_FW_Position_lbl = QLabel('Current Pos.: ')
         self.acquisition_config_FW_Position_lbl.setStyleSheet('QLabel {font: bold 11px; text-align: centre;}')
         self.acquisition_config_FW_Position_set = QComboBox()
-        self.acquisition_config_FW_Position_set.addItems(['P0: Closed','P1: Closed','P2: 0.2 %','P3: 0.5 %','P4: 2 %','P5: 5 %','P6: 20 %', 'P7: Open' ])
+
+        #   ZMX+
+        #self.acquisition_config_FW_Position_set.addItems(['P0: Closed', 'P1: Closed', 'P2: 0.2 %', 'P3: 0.5 %', 'P4: 2 %', 'P5: 5 %', 'P6: 20 %', 'P7: Open'])
+
+        #   MIDI
+        self.acquisition_config_FW_Position_set.addItems(['P0: Open', 'P1: 20 %', 'P2: 5 %', 'P3: 2 %', 'P4: 0.5 %', 'P5: 0.2 %', 'P6: Closed %', 'P7: Closed'])
+
         self.acquisition_config_FW_Motor = QLabel('Motor')
         self.acquisition_config_FW_Plus = QLabel('+')
         self.acquisition_config_FW_Minus = QLabel('-')

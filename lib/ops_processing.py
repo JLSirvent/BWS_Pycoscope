@@ -176,7 +176,7 @@ def process_position(data, configuration, sampling_frequency, StartTime, showplo
         Offset = np.where(Data_Time[0:Data_Time.size - 1] + StartTime > (Rtiming / 1000))[0][0]
 
         try:
-            _IndexRef1 = Offset + np.where(RelDistr[Offset:LengthMin - Offset] > rdcp[2])[0]
+            _IndexRef1 = Offset + np.where(RelDistr[Offset:LengthMin - Offset] > rdcp[1])[0]
             IndexRef1 = _IndexRef1[0]
             Data_Pos = Data_Pos - Data_Pos[IndexRef1]
         except:

@@ -1,4 +1,3 @@
-
 import sys
 sys.path.append('../gui')
 sys.path.append('../lib')
@@ -28,13 +27,21 @@ def process_ops_and_save(configuration, file_list):
     time_SA_OUT = []
     time_SB_OUT = []
 
+    InfoData_CycleStamp = []
+    InfoData_TimeStamp = []
+
     data_scan = DataScan.DataScan()
     cnt = 0
     total_files= len(file_list)
     for single_file in file_list:
         try:
             print("Completed:{}%".format(100*cnt/total_files))
+
             data_scan.load_data_v2(single_file)
+
+            InfoData_CycleStamp.append(data_scan.InfoData_CycleStamp)
+            InfoData_TimeStamp.append(data_scan.InfoData_CycleStamp)
+
             for s in range(0, 2):
                 if s == 0:
                     PS_SA = data_scan.PS_PSA_IN
@@ -81,8 +88,10 @@ def process_ops_and_save(configuration, file_list):
         #if cnt == 10:
         #    break
 
-    sio.savemat('Processed_IN.mat',
-                {'angular_position_SA': angular_position_SA_IN,
+    sio.savemat(configuration.app_datapath + '/Processed_IN.mat',
+                {'InfoData_CycleStamp': InfoData_CycleStamp,
+                 'InfoData_TimeStamp': InfoData_TimeStamp,
+                 'angular_position_SA': angular_position_SA_IN,
                  'angular_position_SB': angular_position_SB_IN,
                  'time_SA': time_SA_IN,
                  'time_SB': time_SB_IN,
@@ -91,8 +100,10 @@ def process_ops_and_save(configuration, file_list):
                  'eccentricity': eccentricity_IN},
                 do_compression=True)
 
-    sio.savemat('Processed_OUT.mat',
-                {'angular_position_SA': angular_position_SA_OUT,
+    sio.savemat(configuration.app_datapath + '/Processed_OUT.mat',
+                {'InfoData_CycleStamp': InfoData_CycleStamp,
+                 'InfoData_TimeStamp': InfoData_TimeStamp,
+                 'angular_position_SA': angular_position_SA_OUT,
                  'angular_position_SB': angular_position_SB_OUT,
                  'time_SA': time_SA_OUT,
                  'time_SB': time_SB_OUT,
@@ -121,14 +132,14 @@ def plot_position_summary(configuration, projected = False):
 
     for i in range(0,2):
         if i == 0:
-            filename = 'Processed_IN.mat'
+            filename = configuration.app_datapath + '/Processed_IN.mat'
             ax_pos = pos_in
             ax_speed = speed_in
             ax_eccentricity = eccentricity_in
             ax_rds = rds_in
             s_title = 'IN'
         else:
-            filename = 'Processed_OUT.mat'
+            filename = configuration.app_datapath + '/Processed_OUT.mat'
             ax_pos = pos_out
             ax_speed = speed_out
             ax_eccentricity = eccentricity_out
@@ -142,14 +153,14 @@ def plot_position_summary(configuration, projected = False):
             ax_speed.set_ylabel('Speed [m/s]', fontsize=fontsize)
             ax_eccentricity.set_ylabel('Eccentricity [um]', fontsize=fontsize)
             ax_eccentricity.set_xlabel('Position[mm]', fontsize=fontsize)
-            ax_eccentricity.set_ylim(-200, 200)
+            #ax_eccentricity.set_ylim(-200, 200)
 
         else:
             ax_pos.set_ylabel('Positon [rad]', fontsize=fontsize)
             ax_speed.set_ylabel('Speed [rad/s]', fontsize=fontsize)
             ax_eccentricity.set_ylabel('Eccentricity [urad]', fontsize=fontsize)
             ax_eccentricity.set_xlabel('Position[rad]', fontsize=fontsize)
-            ax_eccentricity.set_ylim(-1050, -450)
+            ax_eccentricity.set_ylim(-600, 200)
 
         ax_pos.set_xlabel('Time[ms]', fontsize=fontsize)
         ax_pos.set_title('Positions '+ s_title, fontsize=fontsize)
@@ -247,12 +258,12 @@ def plot_position_summary(configuration, projected = False):
                 TSL_B = 0
 
                 if i==0:
-                    MaxlLengthA = len(np.where(np.asarray(time_SA[s])<33)[0])
-                    MaxlLengthB = len(np.where(np.asarray(time_SB[s])<33)[0])
+                    MaxlLengthA = len(np.where(np.asarray(time_SA[s])<40)[0])
+                    MaxlLengthB = len(np.where(np.asarray(time_SB[s])<40)[0])
 
                 else:
-                    MaxlLengthA = len(np.where(np.asarray(time_SA[s])<343)[0])
-                    MaxlLengthB = len(np.where(np.asarray(time_SA[s])<343)[0])
+                    MaxlLengthA = len(np.where(np.asarray(time_SA[s])<400)[0])
+                    MaxlLengthB = len(np.where(np.asarray(time_SA[s])<400)[0])
 
 
                 for c in np.arange(previous_periods,MaxlLengthA):
@@ -283,7 +294,7 @@ def plot_position_summary(configuration, projected = False):
 
                 ax_rds.plot(time_SA[s][0:len(RDS_A)], RDS_A, '.', color='blue', label = 'Sensor A - Total:' + str(MaxlLengthA) + ' SSL:' + str(SSL_A) + ' DSL:' + str(DSL_A) + ' TSL:' + str(TSL_A))
                 ax_rds.plot(time_SB[s][0:len(RDS_B)], RDS_B, '.', color='red', label = 'Sensor B - Total:' + str(MaxlLengthB) + ' SSL:' + str(SSL_B) + ' DSL:' + str(DSL_B) + ' TSL:' + str(TSL_B))
-                ax_rds.legend()
+                #ax_rds.legend()
             except:
                 pass
 
@@ -299,7 +310,7 @@ configuration = Configuration.Configuration()
 # Make file list from folder content (sorted)
 file_list = utils.mat_list_from_folder_sorted(configuration.app_datapath)
 # Process position data and save on files
-#process_ops_and_save(configuration, file_list)
+process_ops_and_save(configuration, file_list)
 
 # Plot data analysis
-plot_position_summary(configuration,projected = True)
+plot_position_summary(configuration, projected = False)

@@ -55,7 +55,6 @@ def process_position(data, configuration, sampling_frequency, StartTime, showplo
         OPS_processing_filter_freq = configuration.ops_low_pass_filter_freq #eval(config.get('OPS processing parameters', 'OPS_processing_filter_freq'))
 
         References_Timming = [configuration.def_ops_in_ref, configuration.def_ops_out_ref] #eval(config.get('OPS processing parameters', 'References_Timming'))
-
         AngularIncrement = 2 * np.pi / SlitsperTurn
 
         threshold_reference = np.amax(data) - camelback_threshold * np.mean(data)

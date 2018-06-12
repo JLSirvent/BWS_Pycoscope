@@ -143,10 +143,10 @@ def peakdet(v, delta, x=None):
 
     return array(maxtab), array(mintab)
 
-def process_profile_old(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample):
+def process_profile_new(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample):
 
     Time = TimeStart + 1e3*(np.arange(0,Amplit.size,1) / SamplingFreq)
-    Amplit = butter_lowpass_filter(Amplit, FilterFreq, SamplingFreq, order=3)
+    Amplit = butter_lowpass_filter(Amplit, FilterFreq, SamplingFreq, order=1)
 
     Amplit_p = Amplit[::Downsample]
     Time_p = Time[::Downsample]

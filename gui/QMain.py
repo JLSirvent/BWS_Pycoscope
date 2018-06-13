@@ -198,7 +198,7 @@ class QMain(QWidget):
         self.data_scan.load_data_v2(full_file_path)
 
         try:
-            title = self.data_scan.InfoData_CycleStamp + ' ' + self.data_scan.InfoData_CycleName + ' AcqDly: ' + str(self.data_scan.InfoData_AcqDelay) + 'ms'
+            title = self.data_scan.InfoData_CycleStamp + '\n' + self.data_scan.InfoData_CycleName + 'F: ' + str(self.data_scan.InfoData_Filter_PRO) +' AcqDly: ' + str(self.data_scan.InfoData_AcqDelay) + 'ms'
         except:
             title = ''
 

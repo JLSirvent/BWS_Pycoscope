@@ -49,9 +49,9 @@ class plot(mplCanvas.mplCanvas):
 
     def __init__(self, parent, width, height, dpi):
 
-        self.X_IN = [np.ones(200),np.ones(200)]
+        self.X_IN = [np.ones(200),np.ones(200),np.ones(200),np.ones(200)]
         self.Y_IN = [np.ones(4), np.ones(200), np.ones(200)]
-        self.X_OUT = [np.ones(200),np.ones(200)]
+        self.X_OUT = [np.ones(200),np.ones(200), np.ones(200),np.ones(200)]
         self.Y_OUT = [np.ones(4), np.ones(200), np.ones(200)]
         self.Imax_OUT = [0, 0, 0, 0]
         self.Imax_IN =  [0, 0, 0, 0]
@@ -66,7 +66,7 @@ class plot(mplCanvas.mplCanvas):
         ax1 = self.fig.add_subplot(121)
         ax2 = self.fig.add_subplot(122)
 
-        col = ['blue', 'red', 'yellow', 'green']
+        col = ['blue', 'red', 'green', 'yellow']
 
         for i in range(0,2):
             if i == 0:
@@ -91,23 +91,25 @@ class plot(mplCanvas.mplCanvas):
                 return y
             for c in range(0,4):
                 try:
-                    _x = np.asarray(x[1])
+                    _x = np.asarray(x[c][1])
                     _y = np.asarray(y[c][1])
                     a = np.max(_y) - np.min(_y)
                     mean = _x[np.where(_y == np.max(_y))[0]]
-                    sigma = 50
+                    sigma = 1
                     o = np.min(_y)
                     try:
                         popt, pcov = curve_fit(gauss, _x, _y, p0=[a, mean, sigma, o])
-                        ax.plot(_x, _y, color=col[c], label ='CH' + str(c+1) + r' $\sigma$:{0:.2f}'.format(popt[2])+ 'um' + r' $\mu$:{0:.2f}'.format(popt[1]) + 'um\n' + 'Imax:{0:.1f}'.format(Imax[c])+ 'mA Qtot:{0:.1f}'.format(Qtot[c]) + 'uC')
+                        ax.plot(_x, _y, color=col[c], label ='CH' + str(c+1) + r' $\sigma$:{0:.2f}'.format(popt[2])+ 'mm' + r' $\mu$:{0:.2f}'.format(popt[1]) + 'mm\n' + 'Imax:{0:.1f}'.format(Imax[c])+ 'mA Qtot:{0:.1f}'.format(Qtot[c]) + 'uC')
                         ax.plot(_x,gauss(_x,*popt),color ='black')
+                        if c==1:
+                            ax.set_xlim(popt[1]-6*popt[2],popt[1]+6*popt[2])
                     except:
                         ax.plot(_x, _y, color=col[c], label='CH' + str(c + 1) + ' Fit Error' + '\nImax:{0:.1f}'.format(Imax[c])+ 'mA Qtot:{0:.1f}'.format(Qtot[c]) + 'uC')
                 except:
-                    pass
+                    print('Error showing fancy plot!')
 
             ax.legend(loc='upper right')
-            ax.set_title('Beam profile - ' + s_title + '\n' + self.stitleinfo)
+            ax.set_title('Beam profile - ' + s_title + self.stitleinfo)
             ax.set_xlabel('Position [mm]')
             ax.set_ylabel('Amplitude [a.u]')
 

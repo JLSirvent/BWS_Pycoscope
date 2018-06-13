@@ -4,6 +4,7 @@ import sys
 import numpy as np
 
 import scipy.signal as signal
+from detect_peaks import detect_peaks
 from scipy.interpolate import interp1d
 from numpy import NaN, Inf, arange, isscalar, asarray, array
 
@@ -49,6 +50,18 @@ def butter_highpass(cutoff, fs, order=5):
     normal_cutoff = cutoff / nyq
     b, a = signal.butter(order, normal_cutoff, btype='high', analog=False)
     return b, a
+
+def butter_bandpass(lowcut, highcut, fs, order=5):
+    nyq = 0.5 * fs
+    low = lowcut / nyq
+    high = highcut / nyq
+    b, a = signal.butter(order, [low, high], btype='band')
+    return b, a
+
+def butter_bandpass_filter(data, lowcut, highcut, fs, order=5):
+    b, a = butter_bandpass(lowcut, highcut, fs, order=order)
+    y = signal.filtfilt(b, a, data)
+    return y
 
 def butter_highpass_filter(data, cutoff, fs, order=5):
     """
@@ -155,16 +168,17 @@ def process_profile_new(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample)
 
 def process_profile(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample):
 
-    FilterFreq1 = 9e6
+    High = 20e6
+    Low = 1e6
+
     Time = TimeStart + 1e3*(np.arange(0,Amplit.size,1) / SamplingFreq)
-    Amplit = butter_highpass_filter(Amplit, FilterFreq1, SamplingFreq, order=1)
+    Amplit = butter_bandpass_filter(data=Amplit,lowcut=Low, highcut=High, fs=SamplingFreq, order=3)
 
-    Amplit[Amplit<0] = 0
+    mpd = np.int(1.75e-6 * SamplingFreq)
+    indexes = detect_peaks(Amplit, mpd=mpd)
 
-    Amplit = butter_lowpass_filter(Amplit, FilterFreq, SamplingFreq, order=3)
-
-    Amplit_p = Amplit[::Downsample]
-    Time_p = Time[::Downsample]
+    Amplit_p = Amplit[indexes]
+    Time_p = Time[indexes]
 
     return [Time_p, Amplit_p]
 

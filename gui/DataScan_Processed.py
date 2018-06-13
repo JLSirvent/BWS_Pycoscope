@@ -48,8 +48,8 @@ class DataScan_Processed:
         self.PMT_OUT_Imax =[0, 0, 0, 0]
         self.PMT_OUT_Qtot =[0, 0, 0, 0]
 
-        self.PS_POSA_IN_Proj = [np.ones(50), np.ones(50)]
-        self.PS_POSA_OUT_Proj = [np.ones(50), np.ones(50)]
+        self.PS_POSA_IN_Proj = [np.ones(50), np.ones(50), np.ones(50), np.ones(50)]
+        self.PS_POSA_OUT_Proj = [np.ones(50), np.ones(50), np.ones(50), np.ones(50)]
 
        # Position Sensors
         self.PS_POSA_IN = [np.ones(50),np.ones(50)]
@@ -88,6 +88,7 @@ class DataScan_Processed:
                                                 1e-3 *data_scan.PS_TimesStart[1], return_processing=True)
             self.PS_POSA_OUT_P = P[0:10]
             self.PS_POSA_OUT = P[10]
+            self.PS_POSA_OUT[1] =  (np.pi/2) - self.PS_POSA_OUT[1]
         except:
             print('Error processing PS_PSA_OUT')
 
@@ -96,6 +97,8 @@ class DataScan_Processed:
                                                 1e-3 *data_scan.PS_TimesStart[1], return_processing=True)
             self.PS_POSB_OUT_P = P[0:10]
             self.PS_POSB_OUT = P[10]
+            self.PS_POSB_OUT[1] =  (np.pi/2) - self.PS_POSB_OUT[1]
+
         except:
             print('Error processing PS_PSB_OUT')
 
@@ -109,7 +112,6 @@ class DataScan_Processed:
                 PMTC = 1e3 * data_scan.PMT_PMTC_IN * data_scan.PMT_Factors[2]
                 PMTD = 1e3 * data_scan.PMT_PMTD_IN * data_scan.PMT_Factors[3]
                 TimeStart = data_scan.PMT_TimesStart[0]
-
 
             else:
                 PMTA = 1e3 * data_scan.PMT_PMTA_OUT * data_scan.PMT_Factors[0]
@@ -130,10 +132,12 @@ class DataScan_Processed:
                     PMT = PMTD
 
                 try:
+
                     Procesed_Profile = utils.process_profile(PMT, 1.0*data_scan.PMT_Fs,
                                                                         1.0*TimeStart,
                                                                         configuration.pmt_filterfreq_profile,
                                                                         configuration.pmt_downsample_profile)
+
 
                     I_max = (abs(np.max(PMT) - np.min(PMT))/50) / 10                 # in mA accounting for amplif
                     Q_tot = 1e3*(abs(np.sum(PMT))/50) * (1/data_scan.PMT_Fs) / 10    # in uC accounting for amplif
@@ -142,6 +146,7 @@ class DataScan_Processed:
                         self.PMT_IN[c] = Procesed_Profile
                         self.PMT_IN_Imax[c] = I_max
                         self.PMT_IN_Qtot[c] = Q_tot
+
                     if i == 1:
                         self.PMT_OUT[c] = Procesed_Profile
                         self.PMT_OUT_Imax[c] = I_max
@@ -149,21 +154,21 @@ class DataScan_Processed:
                 except:
                     print('Error Processing CH' + str(c + 1))
 
-        try:
-            self.PS_POSA_IN_Proj = utils.resample(self.PS_POSA_IN,self.PMT_IN[1])
-            self.PS_POSA_OUT_Proj = utils.resample(self.PS_POSA_OUT,self.PMT_OUT[1])
+                try:
 
-            self.PS_POSA_IN_Proj[1] = utils.do_projection(Fork_Length=configuration.calib_fork_length,
-                                                          Rotation_Offset=configuration.calib_rotation_offset,
-                                                          Fork_Phase=configuration.calib_fork_phase,
-                                                          Angular_Position=self.PS_POSA_IN_Proj[1])
+                    self.PS_POSA_IN_Proj[c] = utils.resample(self.PS_POSA_IN,self.PMT_IN[c])
+                    self.PS_POSA_OUT_Proj[c] = utils.resample(self.PS_POSA_OUT,self.PMT_OUT[c])
 
-            self.PS_POSA_OUT_Proj[1] = utils.do_projection(Fork_Length=configuration.calib_fork_length,
-                                                           Rotation_Offset=configuration.calib_rotation_offset,
-                                                           Fork_Phase=configuration.calib_fork_phase,
-                                                           Angular_Position=self.PS_POSA_OUT_Proj[1])
+                    self.PS_POSA_IN_Proj[c] = utils.do_projection(Fork_Length=configuration.calib_fork_length,
+                                                                  Rotation_Offset=configuration.calib_rotation_offset,
+                                                                  Fork_Phase=configuration.calib_fork_phase,
+                                                                  Angular_Position=self.PS_POSA_IN_Proj[c])
 
-        except:
-            print('Error Interpolating')
+                    self.PS_POSA_OUT_Proj[c] = utils.do_projection(Fork_Length=configuration.calib_fork_length,
+                                                                   Rotation_Offset=configuration.calib_rotation_offset,
+                                                                   Fork_Phase=configuration.calib_fork_phase,
+                                                                   Angular_Position=self.PS_POSA_OUT_Proj[c])
+                except:
+                    print('Error Interpolating')
 
 

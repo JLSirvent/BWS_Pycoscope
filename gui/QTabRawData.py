@@ -206,13 +206,14 @@ class plot(mplCanvas.mplCanvas):
 
                     # This is for processed:
                     #PMT_f = utils.process_profile(PMT, Fs, Start, configuration.pmt_filterfreq_rawview, configuration.pmt_downsample_rawview)
-                    #ax_pmt.plot(PMT_f[0], PMT_f[1], color=color[c], label='CH'+str(c + 1)+' Imax:{0:.0f}'.format(I_max)+'uA Qtot:{0:.0f}'.format(Q_tot)+'nC')
+                    #ax_pmt.plot(PMT_f[0], PMT_f[1], color=color[c+1], label='CH'+str(c + 1)+' Imax:{0:.0f}'.format(I_max)+'uA Qtot:{0:.0f}'.format(Q_tot)+'nC')
 
                     # This is for un-Processed:
                     #mpd = np.int(1.75e-6*Fs)
-                    #indexes = detect_peaks(PMT,mpd=mpd)
+                    #indexes = detect_peaks(PMT_f[1],mpd=mpd)
                     ax_pmt.plot(PMT_x, PMT, color=color[c], label='CH'+str(c + 1)+' Imax:{0:.0f}'.format(I_max)+'uA Qtot:{0:.0f}'.format(Q_tot)+'nC')
-                    #ax_pmt.plot(PMT_x[indexes], PMT[indexes], color=color[c], marker = 'o')
+                    #ax_pmt.plot(PMT_f[0][indexes], PMT_f[1][indexes], color=color[c], marker = 'o')
+
                     ax_pmt.legend(loc='upper right')
 
                 except:

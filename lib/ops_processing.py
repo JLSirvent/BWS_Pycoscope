@@ -53,6 +53,7 @@ def process_position(data, configuration, sampling_frequency, StartTime, showplo
         prominence = configuration.ops_prominence                       #eval(config.get('OPS processing parameters', 'prominence'))
         camelback_threshold = configuration.ops_camelback_threshold     #eval(config.get('OPS processing parameters', 'camelback_threshold'))
         OPS_processing_filter_freq = configuration.ops_low_pass_filter_freq #eval(config.get('OPS processing parameters', 'OPS_processing_filter_freq'))
+        centroids = configuration.ops_centroids
 
         References_Timming = [configuration.def_ops_in_ref, configuration.def_ops_out_ref] #eval(config.get('OPS processing parameters', 'References_Timming'))
         AngularIncrement = 2 * np.pi / SlitsperTurn
@@ -84,42 +85,50 @@ def process_position(data, configuration, sampling_frequency, StartTime, showplo
         LengthMin = np.minimum(pck_up.size, pck_dwn.size)
 
 
-        # ==========================================================================
-        # Position processing based on crossing points: Rising edges only
-        # ==========================================================================
         # Crosing psotion evaluation
         Crosingpos = np.ones((2, LengthMin))
         Crosingpos[1][:] = np.arange(1, LengthMin + 1)
-        IndexDwn = 0
-        IndexUp = 0
-        A = []
 
-        # Position calculation loop:
-        for i in range(0, LengthMin - 1):
+        if centroids == True:
+            # ==========================================================================
+            # Position processing based on centroids
+            # ==========================================================================
+            Crosingpos[0][:] = locs_dwn[0:LengthMin]
+            A = np.ones(LengthMin)
+        else:
+            # ==========================================================================
+            # Position processing based on crossing points: Rising edges only
+            # ==========================================================================
+            IndexDwn = 0
+            IndexUp = 0
+            A = []
 
-            # Ensure crossing point in rising edge (locs_dwn < locs_up)
-            while locs_dwn[IndexDwn] >= locs_up[IndexUp]:
-                IndexUp += 1
+            # Position calculation loop:
+            for i in range(0, LengthMin - 1):
 
-            while locs_dwn[IndexDwn + 1] < locs_up[IndexUp]:
-                IndexDwn += 1
+                # Ensure crossing point in rising edge (locs_dwn < locs_up)
+                while locs_dwn[IndexDwn] >= locs_up[IndexUp]:
+                    IndexUp += 1
 
-            # Calculate thresshold for current window: Mean point
-            Threshold = (data[int(locs_dwn[IndexDwn])] + data[int(locs_up[IndexUp])]) / 2
-            # Find time on crossing point:
-            b = int(locs_dwn[IndexDwn]) + np.where(data[int(locs_dwn[IndexDwn]):int(locs_up[IndexUp])] >= Threshold)[0][0]
-            idx_n = np.where(data[int(locs_dwn[IndexDwn]):int(locs_up[IndexUp])] < Threshold)[0]
-            idx_n = idx_n[::-1][0]
-            a = int(locs_dwn[IndexDwn]) + idx_n
+                while locs_dwn[IndexDwn + 1] < locs_up[IndexUp]:
+                    IndexDwn += 1
 
-            Crosingpos[0, i] = (Threshold - data[int(a)]) * (b - a) / (data[int(b)] - data[int(a)]) + a
+                # Calculate thresshold for current window: Mean point
+                Threshold = (data[int(locs_dwn[IndexDwn])] + data[int(locs_up[IndexUp])]) / 2
+                # Find time on crossing point:
+                b = int(locs_dwn[IndexDwn]) + np.where(data[int(locs_dwn[IndexDwn]):int(locs_up[IndexUp])] >= Threshold)[0][0]
+                idx_n = np.where(data[int(locs_dwn[IndexDwn]):int(locs_up[IndexUp])] < Threshold)[0]
+                idx_n = idx_n[::-1][0]
+                a = int(locs_dwn[IndexDwn]) + idx_n
 
-            # if showplot is True or showplot is 1:
-            A = np.append(A, Threshold)
+                Crosingpos[0, i] = (Threshold - data[int(a)]) * (b - a) / (data[int(b)] - data[int(a)]) + a
 
-            # Move to next window:
-            IndexDwn = IndexDwn + 1
-            IndexUp = IndexUp + 1
+                # if showplot is True or showplot is 1:
+                A = np.append(A, Threshold)
+
+                # Move to next window:
+                IndexDwn = IndexDwn + 1
+                IndexUp = IndexUp + 1
 
         # ==========================================================================
         # Position loss compensation

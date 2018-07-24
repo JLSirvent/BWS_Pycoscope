@@ -198,7 +198,7 @@ class QMain(QWidget):
         self.data_scan.load_data_v2(full_file_path)
 
         try:
-            title = self.data_scan.InfoData_CycleStamp + '\n' + self.data_scan.InfoData_CycleName + 'F: ' + str(self.data_scan.InfoData_Filter_PRO) +' AcqDly: ' + str(self.data_scan.InfoData_AcqDelay) + 'ms'
+            title = self.data_scan.InfoData_CycleStamp + '\n' + self.data_scan.InfoData_CycleName + ' F: ' + str(self.data_scan.InfoData_Filter_PRO) + ' HV: ' + str(np.round(self.data_scan.InfoData_HV)) +' AcqDly: ' + str(self.data_scan.InfoData_AcqDelay) + 'ms'
         except:
             title = ''
 
@@ -210,7 +210,7 @@ class QMain(QWidget):
                 self.plotting_tabs.tab_raw_data.actualise(self.data_scan,self.data_scan_processed,self.configuration)
 
             if self.tab_buttons_pannel.buttons_pannel.updater_motion.isChecked():
-                self.plotting_tabs.tab_motion_data.actualise(self.data_scan_processed)
+                self.plotting_tabs.tab_motion_data.actualise(self.data_scan_processed, self.configuration)
 
             if self.tab_buttons_pannel.buttons_pannel.updater_profile.isChecked():
                 self.plotting_tabs.tab_processed_profiles.actualise(X_IN=self.data_scan_processed.PS_POSA_IN_Proj,

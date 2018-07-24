@@ -88,7 +88,7 @@ class DataScan_Processed:
                                                 1e-3 *data_scan.PS_TimesStart[1], return_processing=True)
             self.PS_POSA_OUT_P = P[0:10]
             self.PS_POSA_OUT = P[10]
-            self.PS_POSA_OUT[1] =  (np.pi/2) - self.PS_POSA_OUT[1]
+            self.PS_POSA_OUT[1] = (np.pi/2) - self.PS_POSA_OUT[1] #Changed for SPS
         except:
             print('Error processing PS_PSA_OUT')
 
@@ -97,7 +97,7 @@ class DataScan_Processed:
                                                 1e-3 *data_scan.PS_TimesStart[1], return_processing=True)
             self.PS_POSB_OUT_P = P[0:10]
             self.PS_POSB_OUT = P[10]
-            self.PS_POSB_OUT[1] =  (np.pi/2) - self.PS_POSB_OUT[1]
+            self.PS_POSB_OUT[1] =  (np.pi/2) - self.PS_POSB_OUT[1] # Changed for SPS
 
         except:
             print('Error processing PS_PSB_OUT')
@@ -139,8 +139,8 @@ class DataScan_Processed:
                                                                         configuration.pmt_downsample_profile)
 
 
-                    I_max = (abs(np.max(PMT) - np.min(PMT))/50) / 10                 # in mA accounting for amplif
-                    Q_tot = 1e3*(abs(np.sum(PMT))/50) * (1/data_scan.PMT_Fs) / 10    # in uC accounting for amplif
+                    I_max = 1e3*(abs(np.max(PMT) - np.min(PMT))/50) / 10                 # in uA accounting for amplif
+                    Q_tot = 1e6*(abs(np.sum(PMT - np.min(PMT)))/50) * (1/data_scan.PMT_Fs) / 10        # in nC accounting for amplif
 
                     if i == 0:
                         self.PMT_IN[c] = Procesed_Profile

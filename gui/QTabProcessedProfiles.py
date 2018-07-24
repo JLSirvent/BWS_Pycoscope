@@ -99,17 +99,17 @@ class plot(mplCanvas.mplCanvas):
                     o = np.min(_y)
                     try:
                         popt, pcov = curve_fit(gauss, _x, _y, p0=[a, mean, sigma, o])
-                        ax.plot(_x, _y, color=col[c], label ='CH' + str(c+1) + r' $\sigma$:{0:.2f}'.format(popt[2])+ 'mm' + r' $\mu$:{0:.2f}'.format(popt[1]) + 'mm\n' + 'Imax:{0:.1f}'.format(Imax[c])+ 'mA Qtot:{0:.1f}'.format(Qtot[c]) + 'uC')
+                        ax.plot(_x, _y, color=col[c], label ='CH' + str(c+1) + r' $\sigma$:{0:.2f}'.format(popt[2])+ 'mm' + r' $\mu$:{0:.2f}'.format(popt[1]) + 'mm\n' + 'Imax:{0:.1f}'.format(Imax[c])+ 'uA Qtot:{0:.1f}'.format(Qtot[c]) + 'nC')
                         ax.plot(_x,gauss(_x,*popt),color ='black')
                         if c==1:
                             ax.set_xlim(popt[1]-6*popt[2],popt[1]+6*popt[2])
                     except:
-                        ax.plot(_x, _y, color=col[c], label='CH' + str(c + 1) + ' Fit Error' + '\nImax:{0:.1f}'.format(Imax[c])+ 'mA Qtot:{0:.1f}'.format(Qtot[c]) + 'uC')
+                        ax.plot(_x, _y, color=col[c], label='CH' + str(c + 1) + ' Fit Error' + '\nImax:{0:.1f}'.format(Imax[c])+ 'uA Qtot:{0:.1f}'.format(Qtot[c]) + 'nC')
                 except:
                     print('Error showing fancy plot!')
 
             ax.legend(loc='upper right')
-            ax.set_title('Beam profile - ' + s_title + self.stitleinfo)
+            ax.set_title('Beam profile - ' + s_title + ' ' + self.stitleinfo)
             ax.set_xlabel('Position [mm]')
             ax.set_ylabel('Amplitude [a.u]')
 

@@ -32,13 +32,14 @@ class QTabMotionData(QWidget):
 
         self.setLayout(main_layout)
 
-    def actualise(self, data_processed):
+    def actualise(self, data_processed, configuration):
 
         self.plot.fig.clear()
         self.plot.PosA_IN = data_processed.PS_POSA_IN
         self.plot.PosB_IN = data_processed.PS_POSB_IN
         self.plot.PosA_OUT = data_processed.PS_POSA_OUT
         self.plot.PosB_OUT = data_processed.PS_POSB_OUT
+        self.plot.config = configuration
         self.plot.compute_initial_figure()
         self.plot.draw()
 
@@ -50,7 +51,7 @@ class QTabMotionData(QWidget):
 class plot(mplCanvas.mplCanvas):
 
     def __init__(self, parent, width, height, dpi):
-
+        self.config  = 0
         self.PosA_IN = [np.ones(200), np.ones(200)]
         self.PosB_IN = [np.ones(200), np.ones(200)]
 
@@ -85,6 +86,18 @@ class plot(mplCanvas.mplCanvas):
                 Scan = 'OUT'
                 Pos_A = self.PosA_OUT
                 Pos_B = self.PosB_OUT
+
+            if self.config != 0:
+                if self.config.show_projected == True:
+                    Pos_A[1] = utils.do_projection(Fork_Length=self.config.calib_fork_length,
+                                                   Rotation_Offset=self.config.calib_rotation_offset,
+                                                   Fork_Phase=self.config.calib_fork_phase,
+                                                   Angular_Position=Pos_A[1])
+
+                    Pos_B[1] = utils.do_projection(Fork_Length=self.config.calib_fork_length,
+                                                   Rotation_Offset=self.config.calib_rotation_offset,
+                                                   Fork_Phase=self.config.calib_fork_phase,
+                                                   Angular_Position=Pos_B[1])
 
             ax_pos.plot(Pos_A[0], Pos_A[1])
             ax_pos.plot(Pos_B[0], Pos_B[1])

@@ -54,6 +54,7 @@ class Configuration:
         self.calib_fork_length = eval(config.get('CalibrationCurve', 'fork_length'))
         self.calib_rotation_offset = eval(config.get('CalibrationCurve', 'rotation_offset'))
         self.calib_fork_phase = eval(config.get('CalibrationCurve', 'fork_phase'))
+        self.show_projected = eval(config.get('CalibrationCurve', 'show_projected'))
 
         self.def_pmt_in_start = eval(config.get('Defaults', 'pmt_in_start'))
         self.def_pmt_in_end = eval(config.get('Defaults', 'pmt_in_stop'))
@@ -73,7 +74,7 @@ class Configuration:
         self.ops_camelback_threshold =  eval(config.get('OPS processing parameters', 'camelback_threshold'))
         self.ops_Compensate_Eccentricity =  eval(config.get('OPS processing parameters', 'Compensate_Eccentricity'))
         self.ops_low_pass_filter_freq =  eval(config.get('OPS processing parameters', 'low_pass_filter_freq'))
-
+        self.ops_centroids = eval(config.get('OPS processing parameters', 'centroids'))
         self.pmt_filterfreq_rawview = eval(config.get('PMT processing parameters', 'filterfreq_rawview'))
         self.pmt_downsample_rawview = eval(config.get('PMT processing parameters', 'downsample_rawview'))
 

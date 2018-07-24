@@ -156,7 +156,7 @@ def peakdet(v, delta, x=None):
 
     return array(maxtab), array(mintab)
 
-def process_profile_new(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample):
+def process_profile0(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample):
 
     Time = TimeStart + 1e3*(np.arange(0,Amplit.size,1) / SamplingFreq)
     Amplit = butter_lowpass_filter(Amplit, FilterFreq, SamplingFreq, order=1)
@@ -166,21 +166,84 @@ def process_profile_new(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample)
 
     return [Time_p, Amplit_p]
 
-def process_profile(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample):
+# For PS
+def process_profile_(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample):
 
-    High = 20e6
+    High = 80e6
     Low = 1e6
 
     Time = TimeStart + 1e3*(np.arange(0,Amplit.size,1) / SamplingFreq)
-    Amplit = butter_bandpass_filter(data=Amplit,lowcut=Low, highcut=High, fs=SamplingFreq, order=3)
+    Amplit = butter_bandpass_filter(data=Amplit,lowcut=Low, highcut=High, fs=SamplingFreq, order=2)
+
+    Amplit[Amplit<0] = 0
 
     mpd = np.int(1.75e-6 * SamplingFreq)
+
     indexes = detect_peaks(Amplit, mpd=mpd)
 
     Amplit_p = Amplit[indexes]
     Time_p = Time[indexes]
 
     return [Time_p, Amplit_p]
+
+# For PSB
+def process_profile_PSB(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample):
+
+    High = 80e6
+    Low  = 1e6
+
+    Time = TimeStart + 1e3 * (np.arange(0, Amplit.size, 1) / SamplingFreq)
+    Amplit = butter_bandpass_filter(data=Amplit, lowcut=Low, highcut=High, fs=SamplingFreq, order=5)
+
+    Amplit[Amplit<0] = 0
+    Amplit = butter_lowpass_filter(Amplit, FilterFreq, SamplingFreq, order=1)
+
+    Amplit_p = Amplit[::Downsample]
+    Time_p = Time[::Downsample]
+
+    Offset = 100
+    Amplit_p = Amplit_p[Offset:]
+    Time_p = Time_p[Offset:]
+
+    return [Time_p, Amplit_p]
+
+
+# For SPS
+def process_profile(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample):
+
+    High = 80e6
+    Low = 1e6
+
+    Time = TimeStart + 1e3*(np.arange(0,Amplit.size,1) / SamplingFreq)
+    Amplit = butter_bandpass_filter(data=Amplit,lowcut=Low, highcut=High, fs=SamplingFreq, order=2)
+
+    Amplit[Amplit<0] = 0
+
+    mpd = np.int(22.5e-6 * SamplingFreq)
+
+    indexes = detect_peaks(Amplit, mpd=mpd)
+
+    #intSamples = np.int(12.5e-9 * SamplingFreq)
+    #Amplit_p=[]
+    #for index in indexes:
+    #    Amplit_p.append(np.sum(Amplit[index -intSamples :index + intSamples]))
+
+    Amplit_p = Amplit[indexes]
+
+    Time_p = Time[indexes]
+
+    return [Time_p, Amplit_p]
+
+def process_profile_lowpass(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample):
+
+    Time = TimeStart + 1e3 * (np.arange(0, Amplit.size, 1) / SamplingFreq)
+    Amplit = butter_lowpass_filter(Amplit, FilterFreq, SamplingFreq, order=1)
+
+    Amplit_p = Amplit
+    Time_p = Time
+
+    return [Time_p, Amplit_p]
+
 
 def do_projection(Fork_Length, Rotation_Offset, Fork_Phase, Angular_Position):
 

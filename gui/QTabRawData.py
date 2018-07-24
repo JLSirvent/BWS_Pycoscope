@@ -201,12 +201,12 @@ class plot(mplCanvas.mplCanvas):
                     Fs = 1/(1e-3*(PMT_x[1]-PMT_x[0]))
                     Start = PMT_x[0]
 
-                    I_max = 1e3 * (abs(np.max(PMT) - np.min(PMT))/50) / 10   # in uA accounting for amplif
-                    Q_tot = 1e6 * (abs(np.sum(PMT))/50) * (1/Fs) / 10        # in nC accounting for amplif
+                    I_max = 1e3 * (abs(np.max(PMT) - np.min(PMT))/50) / 10                  # in uA accounting for amplif
+                    Q_tot = 1e6 * (abs(np.sum(PMT - np.min(PMT)))/50) * (1/Fs) / 10        # in nC accounting for amplif
 
                     # This is for processed:
-                    #PMT_f = utils.process_profile(PMT, Fs, Start, configuration.pmt_filterfreq_rawview, configuration.pmt_downsample_rawview)
-                    #ax_pmt.plot(PMT_f[0], PMT_f[1], color=color[c+1], label='CH'+str(c + 1)+' Imax:{0:.0f}'.format(I_max)+'uA Qtot:{0:.0f}'.format(Q_tot)+'nC')
+                    #PMT_f = utils.process_profile_lowpass(PMT, Fs, Start, configuration.pmt_filterfreq_rawview, configuration.pmt_downsample_rawview)
+                    #ax_pmt.plot(PMT_f[0], PMT_f[1], color=color[c], label='CH'+str(c + 1)+' Imax:{0:.0f}'.format(I_max)+'uA Qtot:{0:.0f}'.format(Q_tot)+'nC')
 
                     # This is for un-Processed:
                     #mpd = np.int(1.75e-6*Fs)

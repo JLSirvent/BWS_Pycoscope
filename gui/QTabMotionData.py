@@ -99,11 +99,17 @@ class plot(mplCanvas.mplCanvas):
                                                    Fork_Phase=self.config.calib_fork_phase,
                                                    Angular_Position=Pos_B[1])
 
+                    ax_pos.set_ylabel('Position [mm]')
+                    ax_spe.set_ylabel('Speed [m/s]')
+
+                else:
+                    ax_pos.set_ylabel('Position [rad]')
+                    ax_spe.set_ylabel('Speed [rad/s]')
+
             ax_pos.plot(Pos_A[0], Pos_A[1])
             ax_pos.plot(Pos_B[0], Pos_B[1])
             ax_pos.set_title('Position - ' + Scan)
             ax_pos.set_xlabel('Time [ms]')
-            ax_pos.set_ylabel('Position [rad]')
 
             try:
                 SpeedA = np.divide(np.diff(Pos_A[1]),np.diff(1e-3*Pos_A[0]))
@@ -116,7 +122,6 @@ class plot(mplCanvas.mplCanvas):
 
                 ax_spe.set_title('Speed - ' + Scan)
                 ax_spe.set_xlabel('Time [ms]')
-                ax_spe.set_ylabel('Speed [rad/d]')
             except:
                 pass
 

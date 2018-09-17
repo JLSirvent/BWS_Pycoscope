@@ -330,8 +330,8 @@ def plot_report(configuration, scan):
     c_ax3 = superplot_cond.add_subplot(313, sharex=c_ax1)
 
     superplot = plt.figure(figsize = [15,9])
-    ax1 = superplot.add_subplot(211)
-    ax2 = superplot.add_subplot(212,sharex=ax1)
+    ax2 = superplot.add_subplot(211)
+    ax1 = superplot.add_subplot(212,sharex=ax2)
 
     # FilterData
     CycleStamp=data['InfoData_CycleStamp']
@@ -342,7 +342,7 @@ def plot_report(configuration, scan):
             Col = ['ob', 'or', 'og', 'oy']
         else:
             scan = 'OUT'
-            Col = ['sb', 'sr', 'sg', 'sy']
+            Col = ['or', 'sr', 'sg', 'sy']
 
         Sigmas = data['Sigmas_'+scan]
         Centres= data['Centres_'+scan]
@@ -373,10 +373,10 @@ def plot_report(configuration, scan):
         c_ax3.set_xlabel('Scan number')
         c_ax3.grid()
 
-        Limit= 5.5
-        Cycle = 'CPS.USER.LHCINDIV'
+        Limit= 600 #5.5
+        Cycle = 'CPS.USER.LHC1'
         HV_lim_min = 1000
-        HV_lim_max = 800
+        HV_lim_max = 0
 
         Idx = []
         Idx.append(np.where((HV[:]>HV_lim_max) & (HV[:]<HV_lim_min) & (CycleStamp[:] == Cycle) & (Amplit[:, 0] < Limit)))
@@ -392,8 +392,8 @@ def plot_report(configuration, scan):
 
         for c in range(0,4):
 
-            ax1.plot(Idx[c],Sigmas[Idx[c],c],Col[c], markersize = 3, label = 'CH '+ str(c))
-            ax2.plot(Idx[c],Centres[Idx[c],c],Col[c], markersize = 3, label = 'CH '+ str(c))
+            ax1.plot(Idx[c],1e3*np.abs(Sigmas[Idx[c],c]),Col[c], markersize = 3, label = 'CH '+ str(c))
+            ax2.plot(Idx[c],1e3*Centres[Idx[c],c],Col[c], markersize = 3, label = 'CH '+ str(c))
 
             iq_ax1.plot(Imax[:,c],Col[c],markersize = 3, label = 'CH '+ str(c))
             iq_ax2.plot(Amplit[:,c],Col[c],markersize = 3, label = 'CH '+ str(c))
@@ -423,14 +423,14 @@ def plot_report(configuration, scan):
     ax1.set_title('Beam Size')
     ax1.set_ylabel('Sigma [mm]')
     ax1.set_xlabel('Scan number')
-    #ax1.set_ylim(0,5)
+    ax1.set_ylim(3500,5500)
     #ax1.legend()
 
     ax2.grid()
     ax2.set_title('Beam Centroid')
     ax2.set_ylabel('Centroid [mm]')
     ax2.set_xlabel('Scan number')
-    ax2.set_ylim(-10,5)
+    ax2.set_ylim(0,4000)
     #ax2.legend()
 
     iq_ax1.grid()
@@ -449,7 +449,81 @@ def plot_report(configuration, scan):
 
     plt.show()
 
+def plot_report_position(Configuration, projected = False):
+    superplot = plt.figure(figsize = [15,9])
 
+    pos_in = superplot.add_subplot(321)
+    pos_out = superplot.add_subplot(322)
+
+    speed_in = superplot.add_subplot(323,sharex=pos_in)
+    speed_out = superplot.add_subplot(324, sharex=pos_out)
+
+    eccentricity_in= superplot.add_subplot(325)
+    eccentricity_out = superplot.add_subplot(326)
+
+    filename = configuration.app_datapath + '/Processed/Summary_Processed.mat'
+    data = sio.loadmat(filename, struct_as_record=False, squeeze_me=True)
+
+    Positions_A_IN_X = data['Positions_A_IN_X']
+    Positions_A_IN_Y = data['Positions_A_IN_Y']
+    Positions_B_IN_X = data['Positions_B_IN_X']
+    Positions_B_IN_Y = data['Positions_B_IN_Y']
+
+    Positions_A_OUT_X = data['Positions_A_OUT_X']
+    Positions_A_OUT_Y = data['Positions_A_OUT_Y']
+    Positions_B_OUT_X = data['Positions_B_OUT_X']
+    Positions_B_OUT_Y = data['Positions_B_OUT_Y']
+
+    Scans  = len(Positions_A_IN_X)
+
+    for i in range(0,Scans):
+
+        if projected == True:
+            Positions_A_IN_Y[i] = utils.do_projection(configuration.calib_fork_length,
+                                                   configuration.calib_rotation_offset,
+                                                   configuration.calib_fork_phase, Positions_A_IN_Y[i])
+            Positions_B_IN_Y[i] = utils.do_projection(configuration.calib_fork_length,
+                                                   configuration.calib_rotation_offset,
+                                                   configuration.calib_fork_phase, Positions_B_IN_Y[i])
+            Positions_A_OUT_Y[i] = utils.do_projection(configuration.calib_fork_length,
+                                                   configuration.calib_rotation_offset,
+                                                   configuration.calib_fork_phase, Positions_A_OUT_Y[i])
+            Positions_B_OUT_Y[i] = utils.do_projection(configuration.calib_fork_length,
+                                                   configuration.calib_rotation_offset,
+                                                   configuration.calib_fork_phase, Positions_B_OUT_Y[i])
+
+        pos_in.plot(Positions_A_IN_X[i],Positions_A_IN_Y[i])
+        pos_out.plot(Positions_A_OUT_X[i],Positions_A_OUT_Y[i])
+
+        N = 10
+        try:
+            speed_SA_IN = np.convolve(np.divide(np.diff(Positions_A_IN_Y[i]), np.diff(Positions_A_IN_X[i])), np.ones((N,)) / N, mode='valid')
+            speed_SB_IN = np.convolve(np.divide(np.diff(Positions_B_IN_Y[i]), np.diff(Positions_B_IN_X[i])), np.ones((N,)) / N, mode='valid')
+            speed_SA_OUT = np.convolve(np.divide(np.diff(Positions_A_OUT_Y[i]), np.diff(Positions_A_OUT_X[i])), np.ones((N,)) / N, mode='valid')
+            speed_SB_OUT = np.convolve(np.divide(np.diff(Positions_B_OUT_Y[i]), np.diff(Positions_B_OUT_X[i])), np.ones((N,)) / N, mode='valid')
+
+            # Calculation of Eccentricity
+            P_B_R = utils.resample([Positions_B_IN_X[i], Positions_B_IN_Y[i]],
+                                   [Positions_A_IN_X[i], Positions_A_IN_Y[i]])
+            ceccentricity_IN = 1e6 * np.subtract(Positions_A_IN_Y[i], P_B_R[1]) / 2
+
+            P_B_R = utils.resample([Positions_B_OUT_X[i], Positions_B_OUT_Y[i]],
+                                   [Positions_A_OUT_X[i], Positions_A_OUT_Y[i]])
+            ceccentricity_OUT = 1e6 * np.subtract(Positions_A_OUT_Y[i], P_B_R[1]) / 2
+
+            speed_in.plot(Positions_A_IN_X[i][0:speed_SA_IN.size],speed_SA_IN)
+            speed_out.plot(Positions_A_OUT_X[i][0:speed_SA_OUT.size],speed_SA_OUT)
+
+            eccentricity_in.plot(Positions_A_IN_Y[i], ceccentricity_IN)
+            eccentricity_out.plot(Positions_A_OUT_Y[i], ceccentricity_OUT)
+
+        except:
+            pass
+
+
+
+    #Positions_A_OUT_X[i][0:speed_SA_OUT.size]
+    plt.show()
 
 def plot_position_summary(configuration, projected = False):
 
@@ -477,10 +551,11 @@ def plot_position_summary(configuration, projected = False):
 
         Position_Zero = []
         counter = 0
-        for d in range(0,4):
+        for d in range(0,1):
 
             if d == 0:
-                foldername = 'G:\Projects\BWS_Calibrations\Tunnel_Tests/2018_06_07_PS_PXBWSRB011_CR000001_Acquisition_Tests_Without_Beam\Processed'
+                #foldername = 'G:\Projects\BWS_Calibrations\Tunnel_Tests/2018_06_07_PS_PXBWSRB011_CR000001_Acquisition_Tests_Without_Beam\Processed'
+                foldername = configuration.app_datapath
             if d == 1:
                 foldername = 'G:\Projects\BWS_Calibrations\Tunnel_Tests/2018_06_08_PS_PXBWSRB011_CR000001_Acquisition_Tests_With_Beam_LHCINDIV\Processed'
             if d == 2:
@@ -701,8 +776,8 @@ file_list = utils.mat_list_from_folder_sorted(configuration.app_datapath)
 #process_ops_and_save(configuration, file_list)
 
 # Process PMT profiles and save on files
-process_amplitudes_and_save(configuration, file_list)
+#process_amplitudes_and_save(configuration, file_list)
 #plot_report(configuration,'OUT')
 
 # Plot data analysis
-#plot_position_summary(configuration, projected = True)
+plot_report_position(configuration, projected = True)

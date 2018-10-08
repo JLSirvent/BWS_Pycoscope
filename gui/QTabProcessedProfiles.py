@@ -101,7 +101,7 @@ class plot(mplCanvas.mplCanvas):
                         popt, pcov = curve_fit(gauss, _x, _y, p0=[a, mean, sigma, o])
                         ax.plot(_x, _y, color=col[c], label ='CH' + str(c+1) + r' $\sigma$:{0:.2f}'.format(popt[2])+ 'mm' + r' $\mu$:{0:.2f}'.format(popt[1]) + 'mm\n' + 'Imax:{0:.1f}'.format(Imax[c])+ 'uA Qtot:{0:.1f}'.format(Qtot[c]) + 'nC')
                         ax.plot(_x,gauss(_x,*popt),color ='black')
-                        if c==1:
+                        if c==0:
                             ax.set_xlim(popt[1]-6*popt[2],popt[1]+6*popt[2])
                     except:
                         ax.plot(_x, _y, color=col[c], label='CH' + str(c + 1) + ' Fit Error' + '\nImax:{0:.1f}'.format(Imax[c])+ 'uA Qtot:{0:.1f}'.format(Qtot[c]) + 'nC')

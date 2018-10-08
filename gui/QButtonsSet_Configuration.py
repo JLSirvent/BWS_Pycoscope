@@ -178,7 +178,7 @@ class QButtonsSet_Configuration(QWidget):
 
         # General Layout
         self.acquisition_config_Det_box_layout = QVBoxLayout()
-        self.acquisition_config_Det_box_layout.addWidget(self.acquisition_config_FW_box)
+        #self.acquisition_config_Det_box_layout.addWidget(self.acquisition_config_FW_box)
         self.acquisition_config_Det_box_layout.addWidget(self.acquisition_config_HV_box)
         self.acquisition_config_Det_box.setLayout(self.acquisition_config_Det_box_layout)
 

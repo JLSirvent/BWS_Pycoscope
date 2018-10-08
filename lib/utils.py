@@ -157,6 +157,7 @@ def peakdet(v, delta, x=None):
 
     return array(maxtab), array(mintab)
 
+# Base for All (Emulation of TBT mode) Low pass filters profile
 def process_profile0(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample):
 
     Time = TimeStart + 1e3*(np.arange(0,Amplit.size,1) / SamplingFreq)
@@ -169,27 +170,58 @@ def process_profile0(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample):
 
 # For PS
 def process_profile_PS(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample):
-
-    High = 80e6
-    Low = 1e6
+    # Peak detection (If many bunches peaks may correspond randomly to any bunch)
+    High = 10e6
 
     Time = TimeStart + 1e3*(np.arange(0,Amplit.size,1) / SamplingFreq)
-    Amplit = butter_bandpass_filter(data=Amplit,lowcut=Low, highcut=High, fs=SamplingFreq, order=2)
+    Amplit = butter_lowpass_filter(Amplit, High, SamplingFreq, order=1)
 
-    Amplit[Amplit<0] = 0
+    mpd = np.int(1.78e-6 * SamplingFreq)
 
-    mpd = np.int(1.75e-6 * SamplingFreq)
-
-    indexes = detect_peaks(Amplit, mpd=mpd)
+    indexes = detect_peaks(Amplit,mpd=mpd)
 
     Amplit_p = Amplit[indexes]
     Time_p = Time[indexes]
 
-    Averaging_Window = 10
+    Averaging_Window = 20
     Amplit_p = np.convolve(Amplit_p, np.ones((Averaging_Window,)) / Averaging_Window, mode='valid')
     Time_p = np.convolve(Time_p, np.ones((Averaging_Window,)) / Averaging_Window, mode='valid')
 
     return [Time_p, Amplit_p]
+
+
+def process_profile_PS2(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample):
+    # Bunch By Bunch integrals with 4 Bunches on PS
+    High = 15e6
+
+    Time = TimeStart + 1e3 * (np.arange(0, Amplit.size, 1) / SamplingFreq)
+    Amplit = butter_lowpass_filter(Amplit, High, SamplingFreq, order=1)
+
+    mpd = np.int(2e-6 * SamplingFreq)
+    indexes = detect_peaks(Amplit, mpd=mpd)
+
+    IntegralAround = np.int(1.13e-6 * SamplingFreq)
+    indexes = indexes[10:len(indexes)-10]
+
+    #plt.plot(Time,Amplit)
+    #plt.plot(Time[indexes-IntegralAround],Amplit[indexes-IntegralAround],'.b')
+    #plt.plot(Time[indexes+IntegralAround],Amplit[indexes+IntegralAround],'.r')
+    #plt.show()
+
+    Amplit_p=[]
+    for i in indexes:
+        Amplit_p.append(np.sum(Amplit[i-IntegralAround:i+IntegralAround]))
+
+    #Amplit_p = np.asarray(Amplit_p)
+    Time_p = Time[indexes]
+
+    Averaging_Window = 5
+    Amplit_p = np.convolve(Amplit_p, np.ones((Averaging_Window,)) / Averaging_Window, mode='valid')
+    Time_p = np.convolve(Time_p, np.ones((Averaging_Window,)) / Averaging_Window, mode='valid')
+
+    return [Time_p, Amplit_p]
+
+
 
 # For PSB
 def process_profile_PSB(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample):
@@ -258,43 +290,9 @@ def process_profile_TbT(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample)
     Time = TimeStart + 1e3 * (np.arange(0, Amplit.size, 1) / SamplingFreq)
     Amplit = butter_lowpass_filter(Amplit, High, SamplingFreq, order=1)
 
-    mpd = np.int(1.75e-6 * SamplingFreq)
-    idx = detect_peaks(Amplit, mpd=mpd)
-
-    WindowAround = np.int(mpd/1.5)
-
-    idxstart = []
-
-    for i in idx:
-        if i-WindowAround - 100 > 0 and i+WindowAround < Amplit.size:
-            a = np.where(Amplit[i-WindowAround:i+WindowAround] > (Amplit[i]/2))[0][0]
-            idxstart.append(i-WindowAround + a -100)
-
-    Amplit_int = []
-    for i in range(0,len(idxstart)-1):
-            Amplit_int.append(np.sum(Amplit[idxstart[i]:idxstart[i+1]]))
-
-    #plt.plot(Time[idxstart[0:len(idxstart)-1]],Amplit_int,'.r')
-    #plt.plot(Time,Amplit)
-    #plt.plot(Time[idx],Amplit[idx],'.r')
-    #plt.plot(Time[idxstart],Amplit[idxstart],'.b')
-    #plt.show()
-
-    Time_p = Time[idxstart[0:len(idxstart)-1]]
-    Amplit_p = Amplit_int
-
-    return [Time_p, Amplit_p]
-
-def process_profile_TbT2(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample):
-    High = 80e6
-
-    Time = TimeStart + 1e3 * (np.arange(0, Amplit.size, 1) / SamplingFreq)
-    Amplit = butter_lowpass_filter(Amplit, High, SamplingFreq, order=1)
-
     mpd = np.int(1.76e-6 * SamplingFreq)
 
     Idx_slice = np.arange(0,len(Amplit)- mpd,mpd)
-    print(Idx_slice)
 
     Amplit_p = []
     Time_p = []

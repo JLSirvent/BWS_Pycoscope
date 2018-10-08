@@ -69,7 +69,7 @@ class DataScan_Processed:
 
         try:
             P = ops_processing.process_position(data_scan.PS_PSA_IN, configuration, data_scan.PS_Fs,
-                                                1e-3*data_scan.PS_TimesStart[0], return_processing=True)
+                                                1e-3*data_scan.PS_TimesStart[0], return_processing=True, INOUT='IN')
             self.PS_POSA_IN_P = P[0:10]
             self.PS_POSA_IN = P[10]
         except:
@@ -77,7 +77,7 @@ class DataScan_Processed:
 
         try:
             P = ops_processing.process_position(data_scan.PS_PSB_IN, configuration, data_scan.PS_Fs,
-                                                1e-3 * data_scan.PS_TimesStart[0], return_processing=True)
+                                                1e-3 * data_scan.PS_TimesStart[0], return_processing=True, INOUT='IN')
             self.PS_POSB_IN_P = P[0:10]
             self.PS_POSB_IN = P[10]
         except:
@@ -85,20 +85,17 @@ class DataScan_Processed:
 
         try:
             P = ops_processing.process_position(data_scan.PS_PSA_OUT, configuration, data_scan.PS_Fs,
-                                                1e-3 *data_scan.PS_TimesStart[1], return_processing=True)
+                                                1e-3 *data_scan.PS_TimesStart[1], return_processing=True, INOUT='OUT')
             self.PS_POSA_OUT_P = P[0:10]
             self.PS_POSA_OUT = P[10]
-            self.PS_POSA_OUT[1] = (np.pi/2)  + (4.5*np.pi/configuration.ops_slits_per_turn) - self.PS_POSA_OUT[1] #Changed for SPS
         except:
             print('Error processing PS_PSA_OUT')
 
         try:
             P = ops_processing.process_position(data_scan.PS_PSB_OUT, configuration, data_scan.PS_Fs,
-                                                1e-3 *data_scan.PS_TimesStart[1], return_processing=True)
+                                                1e-3 *data_scan.PS_TimesStart[1], return_processing=True, INOUT='OUT')
             self.PS_POSB_OUT_P = P[0:10]
             self.PS_POSB_OUT = P[10]
-            self.PS_POSB_OUT[1] =  (np.pi/2) + (4.5*np.pi/configuration.ops_slits_per_turn) - self.PS_POSB_OUT[1] # Changed for SPS
-
         except:
             print('Error processing PS_PSB_OUT')
 
@@ -133,7 +130,7 @@ class DataScan_Processed:
 
                 try:
 
-                    Procesed_Profile = utils.process_profile_TbT2(PMT, 1.0*data_scan.PMT_Fs,
+                    Procesed_Profile = utils.process_profile_PS(PMT, 1.0*data_scan.PMT_Fs,
                                                                         1.0*TimeStart,
                                                                         configuration.pmt_filterfreq_profile,
                                                                         configuration.pmt_downsample_profile)

@@ -39,7 +39,7 @@ from scipy.optimize import curve_fit
 from scipy.interpolate import interp1d
 
 def process_position(data, configuration, sampling_frequency, StartTime, showplot=False, filename=None, return_processing=False,
-                     camelback_threshold_on=True):
+                     camelback_threshold_on=True, INOUT = 'IN'):
     """
     Processing of the angular position based on the raw data of the OPS
     Credits : Jose Luis Sirvent (BE-BI-PM, CERN)
@@ -57,6 +57,9 @@ def process_position(data, configuration, sampling_frequency, StartTime, showplo
 
         References_Timming = [configuration.def_ops_in_ref, configuration.def_ops_out_ref] #eval(config.get('OPS processing parameters', 'References_Timming'))
         AngularIncrement = 2 * np.pi / SlitsperTurn
+
+        if INOUT == 'OUT':
+            data = np.flip(data,0)
 
         threshold_reference = np.amax(data) - camelback_threshold * np.mean(data)
 
@@ -177,11 +180,13 @@ def process_position(data, configuration, sampling_frequency, StartTime, showplo
         # ==========================================================================
 
         if StartTime > References_Timming[0] / 1000:
+            # This is the OUT
             Rtiming = References_Timming[1]
+            Offset = np.where(((StartTime + len(data)/sampling_frequency) - Data_Time[0:Data_Time.size - 1]) < (Rtiming / 1000))[0][0]
         else:
+            # This is the IN
             Rtiming = References_Timming[0]
-
-        Offset = np.where(Data_Time[0:Data_Time.size - 1] + StartTime > (Rtiming / 1000))[0][0]
+            Offset = np.where(Data_Time[0:Data_Time.size - 1] + StartTime > (Rtiming / 1000))[0][0]
 
         try:
             _IndexRef1 = Offset + np.where(RelDistr[Offset:LengthMin - Offset] > rdcp[1])[0]
@@ -193,7 +198,13 @@ def process_position(data, configuration, sampling_frequency, StartTime, showplo
 
 
         Data = np.ndarray((2, Data_Pos.size - 1))
-        Data[0] = 1e3*(Data_Time[0:Data_Time.size - 1] + StartTime)
+
+        if INOUT == 'OUT':
+            Data[0] = 1e3 * ((StartTime + len(data)/sampling_frequency) - Data_Time[0:Data_Time.size - 1])
+        else:
+            Data[0] = 1e3*(Data_Time[0:Data_Time.size - 1] + StartTime)
+
+
         Data[1] = Data_Pos[0:Data_Pos.size - 1]
 
         # ==========================================================================
@@ -218,13 +229,22 @@ def process_position(data, configuration, sampling_frequency, StartTime, showplo
         # #        plt.plot(1e3*StartTime+1e3*np.arange(1,Distances.size)*1/sampling_frequency + StartTime, RelDistr, '.')
 
         if return_processing is True:
-            return [0, 0,
-                    1e3 * StartTime + 1e3 * locs_up * 1 / sampling_frequency, pck_up,
-                    1e3 * StartTime + 1e3 * locs_dwn * 1 / sampling_frequency, pck_dwn,
-                    1e3 * StartTime + 1e3 * Crosingpos[0][0:A.size] * 1 / sampling_frequency, A,
-                    threshold_reference / max_data,
-                    1e3 * StartTime + 1e3 * Crosingpos[0][IndexRef1] * (1 / sampling_frequency),
-                    Data]
+            if INOUT == 'OUT':
+                return [0, 0,
+                        1e3 * (StartTime + len(data)/sampling_frequency) - 1e3 * locs_up * 1 / sampling_frequency, pck_up,
+                        1e3 * (StartTime + len(data)/sampling_frequency) - 1e3 * locs_dwn * 1 / sampling_frequency, pck_dwn,
+                        1e3 * (StartTime + len(data)/sampling_frequency) - 1e3 * Crosingpos[0][0:A.size] * 1 / sampling_frequency, A,
+                        threshold_reference / max_data,
+                        1e3 * (StartTime + len(data)/sampling_frequency) - 1e3 * Crosingpos[0][IndexRef1] * (1 / sampling_frequency),
+                        Data]
+            else:
+                return [0, 0,
+                        1e3 * StartTime + 1e3 * locs_up * 1 / sampling_frequency, pck_up,
+                        1e3 * StartTime + 1e3 * locs_dwn * 1 / sampling_frequency, pck_dwn,
+                        1e3 * StartTime + 1e3 * Crosingpos[0][0:A.size] * 1 / sampling_frequency, A,
+                        threshold_reference / max_data,
+                        1e3 * StartTime + 1e3 * Crosingpos[0][IndexRef1] * (1 / sampling_frequency),
+                        Data]
 
         else:
             return Data

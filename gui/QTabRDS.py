@@ -125,7 +125,7 @@ class plot(mplCanvas.mplCanvas):
 
                 ax.plot(TimesA[0:len(RDS_A)], RDS_A, '.', color='blue', label = 'Sensor A - Total: ' + str(len(RDS_A)) + ' SSL:' +str(SSL_A)+ ' DSL:' + str(DSL_A)+' TSL:' + str(TSL_A) +' STD_Pitch:{:.2f}'.format(100*STD_A) + '%' )
                 ax.plot(TimesB[0:len(RDS_B)], RDS_B, '.', color='red', label = 'Sensor B - Total: ' + str(len(RDS_B)) + ' SSL:' +str(SSL_B)+ ' DSL:' + str(DSL_B)+' TSL:' + str(TSL_B) + ' STD_Pitch:{:.2f}'.format(100*STD_B) + '%' )
-                ax.set_ylim(0.6,1.4)
+                ax.set_ylim(0.6,4)
                 ax.set_title('Relative Distance Signature - ' + Scan)
                 ax.set_xlabel('Time [ms]')
                 ax.set_ylabel('RDS')

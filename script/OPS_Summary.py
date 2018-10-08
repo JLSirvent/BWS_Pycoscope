@@ -310,7 +310,82 @@ def process_amplitudes_and_save(configuration, file_list):
                  },
                   do_compression = True)
 
+def process_only_meas_cond(configuration,file_list):
 
+    InfoData_CycleStamp = []
+    InfoData_TimeStamp = []
+    InfoData_Filter_PRO = []
+    InfoData_HV = []
+    InfoData_CycleName = []
+    InfoData_AcqDelay = []
+    AmplitG_IN = []
+
+    data_scan = DataScan.DataScan()
+
+    cnt = 0
+    total_files= len(file_list)
+
+    for single_file in file_list:
+        try:
+            AmplitG = np.ones(4) * 0
+
+            data_scan.load_data_v2(single_file)
+            AmplitG[0] = np.min(1e3 * data_scan.PMT_PMTA_IN * data_scan.PMT_Factors[0])
+            AmplitG[1] = np.min(1e3 * data_scan.PMT_PMTB_IN * data_scan.PMT_Factors[1])
+            AmplitG[2] = np.min(1e3 * data_scan.PMT_PMTC_IN * data_scan.PMT_Factors[2])
+            AmplitG[3] = np.min(1e3 * data_scan.PMT_PMTD_IN * data_scan.PMT_Factors[3])
+
+            print("Completed:{}%".format(100*cnt/total_files)+ " File: " + single_file.split('\\')[-1])
+            cnt = cnt + 1
+            # Concatenate InfoData
+            InfoData_CycleStamp.append(data_scan.InfoData_CycleStamp)
+            InfoData_TimeStamp.append(data_scan.InfoData_TimeStamp)
+            InfoData_Filter_PRO.append(data_scan.InfoData_Filter_PRO)
+            InfoData_HV.append(data_scan.InfoData_HV)
+            InfoData_CycleName.append(data_scan.InfoData_CycleName)
+            InfoData_AcqDelay.append(data_scan.InfoData_AcqDelay)
+            AmplitG_IN.append(AmplitG)
+        except:
+            print("Error!")
+
+    sio.savemat(configuration.app_datapath + '/Processed/Summary_Processed_MeasCond.mat',
+                {'InfoData_CycleStamp': InfoData_CycleStamp,
+                 'InfoData_TimeStamp': InfoData_TimeStamp,
+                 'InfoData_Filter_PRO': InfoData_Filter_PRO,
+                 'InfoData_HV': InfoData_HV,
+                 'InfoData_CycleName': InfoData_CycleName,
+                 'InfoData_AcqDelay': InfoData_AcqDelay,
+                 'AmplitG_IN': AmplitG_IN
+                 },
+                 do_compression=True)
+
+def plot_only_meas_cond(configuration):
+    filename = configuration.app_datapath + '/Processed/Summary_Processed_MeasCond.mat'
+    data = sio.loadmat(filename, struct_as_record=False, squeeze_me=True)
+    superplot = plt.figure(figsize=[15,9])
+
+    ax_HV = superplot.add_subplot(511)
+    ax_Filt = superplot.add_subplot(512)
+    ax_Ctime = superplot.add_subplot(513)
+    ax_User = superplot.add_subplot(514)
+    ax_Amplit = superplot.add_subplot(515)
+
+    ax_HV.plot(data['InfoData_HV'])
+    ax_HV.grid(True, color='#DBDBDB', alpha=0.4)
+
+    ax_Filt.plot(data['InfoData_Filter_PRO'])
+    ax_Filt.grid(True, color='#DBDBDB', alpha=0.4)
+
+    ax_Ctime.plot(data['InfoData_AcqDelay'])
+    ax_Ctime.grid(True, color='#DBDBDB', alpha=0.4)
+
+    #ax_User.plot(data['InfoData_CycleStamp'])
+    #ax_User.grid(True, color='#DBDBDB', alpha=0.4)
+
+    ax_Amplit.plot(data['AmplitG_IN'])
+    ax_Amplit.grid(True, color='#DBDBDB', alpha=0.4)
+
+    plt.show()
 
 def plot_report(configuration, scan):
 
@@ -772,12 +847,16 @@ configuration = Configuration.Configuration()
 # Make file list from folder content (sorted)
 file_list = utils.mat_list_from_folder_sorted(configuration.app_datapath)
 
+# Extract only Measurement Conditions
+#process_only_meas_cond(configuration, file_list)
+#plot_only_meas_cond(configuration)
+
 # Process position data and save on files
 #process_ops_and_save(configuration, file_list)
 
 # Process PMT profiles and save on files
-#process_amplitudes_and_save(configuration, file_list)
+process_amplitudes_and_save(configuration, file_list)
 #plot_report(configuration,'OUT')
 
 # Plot data analysis
-plot_report_position(configuration, projected = True)
+#plot_report_position(configuration, projected = True)

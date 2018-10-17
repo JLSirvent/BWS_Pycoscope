@@ -173,6 +173,9 @@ def process_profile_PS(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample):
     # Peak detection (If many bunches peaks may correspond randomly to any bunch)
     High = 10e6
 
+    #Amplit2 = butter_lowpass_filter(Amplit, 80e6, SamplingFreq, order=1)
+    #indexes =
+
     Time = TimeStart + 1e3*(np.arange(0,Amplit.size,1) / SamplingFreq)
     Amplit = butter_lowpass_filter(Amplit, High, SamplingFreq, order=1)
 
@@ -183,7 +186,7 @@ def process_profile_PS(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample):
     Amplit_p = Amplit[indexes]
     Time_p = Time[indexes]
 
-    Averaging_Window = 20
+    Averaging_Window = 5
     Amplit_p = np.convolve(Amplit_p, np.ones((Averaging_Window,)) / Averaging_Window, mode='valid')
     Time_p = np.convolve(Time_p, np.ones((Averaging_Window,)) / Averaging_Window, mode='valid')
 
@@ -200,13 +203,14 @@ def process_profile_PS2(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample)
     mpd = np.int(2e-6 * SamplingFreq)
     indexes = detect_peaks(Amplit, mpd=mpd)
 
-    IntegralAround = np.int(1.13e-6 * SamplingFreq)
+    #IntegralAround = np.int(1.13e-6 * SamplingFreq)
+    IntegralAround =  np.int(100e-9*SamplingFreq) # Integrals of 200ns
     indexes = indexes[10:len(indexes)-10]
 
-    #plt.plot(Time,Amplit)
-    #plt.plot(Time[indexes-IntegralAround],Amplit[indexes-IntegralAround],'.b')
-    #plt.plot(Time[indexes+IntegralAround],Amplit[indexes+IntegralAround],'.r')
-    #plt.show()
+    plt.plot(Time,Amplit)
+    plt.plot(Time[indexes-IntegralAround],Amplit[indexes-IntegralAround],'.b')
+    plt.plot(Time[indexes+IntegralAround],Amplit[indexes+IntegralAround],'.r')
+    plt.show()
 
     Amplit_p=[]
     for i in indexes:
@@ -221,7 +225,34 @@ def process_profile_PS2(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample)
 
     return [Time_p, Amplit_p]
 
+# Band Pass and Peak Detection
+def process_profile_PS3(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample):
+    High = 10e6
+    Low = 2e6
 
+    Time = TimeStart + 1e3 * (np.arange(0, Amplit.size, 1) / SamplingFreq)
+    Amplit = butter_bandpass_filter(Amplit,Low, High, SamplingFreq, order=1)
+
+    mpd = np.int(2e-6 * SamplingFreq)
+    indexes = detect_peaks(Amplit, mpd=mpd)
+
+    #IntegralAround = np.int(1.13e-6 * SamplingFreq)
+    #IntegralAround =  np.int(100e-9*SamplingFreq)  Integrals of 200ns
+    #indexes = indexes[10:len(indexes)-10]
+
+    #plt.plot(Time,Amplit)
+    #plt.plot(Time[indexes],Amplit[indexes],'.b')
+    #plt.plot(Time[indexes+IntegralAround],Amplit[indexes+IntegralAround],'.r')
+    #plt.show()
+
+    Amplit_p = Amplit[indexes]
+    Time_p = Time[indexes]
+
+    Averaging_Window = 5
+    Amplit_p = np.convolve(Amplit_p, np.ones((Averaging_Window,)) / Averaging_Window, mode='valid')
+    Time_p = np.convolve(Time_p, np.ones((Averaging_Window,)) / Averaging_Window, mode='valid')
+
+    return [Time_p, Amplit_p]
 
 # For PSB
 def process_profile_PSB(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample):
@@ -305,8 +336,8 @@ def process_profile_TbT(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample)
 
 
 
-def do_projection(Fork_Length, Rotation_Offset, Fork_Phase, Angular_Position):
+def do_projection(Fork_Length, Rotation_Offset, Angle_Correction, Angular_Position):
 
-    Projection = Rotation_Offset - Fork_Length * np.cos(np.pi - Angular_Position + Fork_Phase)
+    Projection = Rotation_Offset - Fork_Length * np.cos(np.pi - (Angular_Position + Angle_Correction))
 
     return Projection

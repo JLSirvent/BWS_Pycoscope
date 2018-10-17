@@ -130,7 +130,7 @@ class DataScan_Processed:
 
                 try:
 
-                    Procesed_Profile = utils.process_profile_PS(PMT, 1.0*data_scan.PMT_Fs,
+                    Procesed_Profile = utils.process_profile_PS3(PMT, 1.0*data_scan.PMT_Fs,
                                                                         1.0*TimeStart,
                                                                         configuration.pmt_filterfreq_profile,
                                                                         configuration.pmt_downsample_profile)
@@ -157,12 +157,12 @@ class DataScan_Processed:
 
                     self.PS_POSA_IN_Proj[c] = utils.do_projection(Fork_Length=configuration.calib_fork_length,
                                                                   Rotation_Offset=configuration.calib_rotation_offset,
-                                                                  Fork_Phase=configuration.calib_fork_phase,
+                                                                  Angle_Correction=configuration.calib_fork_phase,
                                                                   Angular_Position=self.PS_POSA_IN_Proj[c])
 
                     self.PS_POSA_OUT_Proj[c] = utils.do_projection(Fork_Length=configuration.calib_fork_length,
                                                                    Rotation_Offset=configuration.calib_rotation_offset,
-                                                                   Fork_Phase=configuration.calib_fork_phase,
+                                                                   Angle_Correction=configuration.calib_fork_phase,
                                                                    Angular_Position=self.PS_POSA_OUT_Proj[c])
                 except:
                     print('Error Interpolating')

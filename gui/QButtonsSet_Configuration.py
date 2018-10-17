@@ -268,7 +268,7 @@ class QButtonsSet_Configuration(QWidget):
         #self.setFixedWidth(250)
 
     def add_ranges(self,ItemToLoad):
-        ItemToLoad.addItems(['OFF', '50 mv', '100 mv', '200 mv', '500 mv', '1 v', '2 v'])
+        ItemToLoad.addItems(['OFF', '50 mv', '100 mv', '200 mv', '500 mv', '1 v', '2 v', '5 v'])
 
     def set_defaults_at_startup(self,config):
         self.acquisition_config_pmt_in_start_txt.setText(str(config.def_pmt_in_start))

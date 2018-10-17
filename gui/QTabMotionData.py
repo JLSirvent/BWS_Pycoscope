@@ -143,6 +143,7 @@ class plot(mplCanvas.mplCanvas):
                 Pos_B_R = utils.resample(Pos_B,Pos_A)
                 Eccentricity = np.subtract(Pos_A[1], Pos_B_R[1]) / 2
                 ax_ecc.plot(Pos_A[1][Offset:Length-Offset], 1e6*Eccentricity[Offset:Length-Offset])
+
             except:
                 pass
 

@@ -8,9 +8,12 @@ import scipy.io as sio
 import ops_processing, utils
 import Configuration, DataScan, DataScan_Processed
 
+from datetime import datetime
+
 from matplotlib import cm as cmx
 from matplotlib import pyplot as plt
 from matplotlib import colors as colors
+import matplotlib.dates as mdates
 
 from scipy.optimize import curve_fit
 
@@ -232,9 +235,9 @@ def process_amplitudes_and_save(configuration, file_list):
                     _y = np.asarray(PMT_Data[c][1])
                     _x = np.asarray(PMT_Pos[c][1])
 
-                    a = 1 #np.max(_y) - np.min(_y)
+                    a = 0.5 #np.max(_y) - np.min(_y)
                     mean = _x[np.where(_y == np.max(_y))[0]]
-                    sigma = 1
+                    sigma = 2
                     o = np.min(_y)
 
                     popt, pcov = curve_fit(gauss, _x, _y, p0=[a, mean, sigma, o])
@@ -387,7 +390,7 @@ def plot_only_meas_cond(configuration):
 
     plt.show()
 
-def plot_report(configuration, scan):
+def plot_report(configuration):
 
     filename = configuration.app_datapath + '/Processed/Summary_Processed.mat'
     data = sio.loadmat(filename, struct_as_record=False, squeeze_me=True)
@@ -408,16 +411,19 @@ def plot_report(configuration, scan):
     ax2 = superplot.add_subplot(211)
     ax1 = superplot.add_subplot(212,sharex=ax2)
 
+    superplot_Q_Sigma = plt.figure(figsize = [15,9])
+    axq = superplot_Q_Sigma.add_subplot(111)
+    axq.grid()
     # FilterData
     CycleStamp=data['InfoData_CycleStamp']
 
     for s in range(0,2):
         if s==0:
             scan = 'IN'
-            Col = ['ob', 'or', 'og', 'oy']
+            Col = ['ob', 'og', '-og', 'oy']
         else:
             scan = 'OUT'
-            Col = ['or', 'sr', 'sg', 'sy']
+            Col = ['or', 'oy', '--sg', 'sy']
 
         Sigmas = data['Sigmas_'+scan]
         Centres= data['Centres_'+scan]
@@ -426,9 +432,20 @@ def plot_report(configuration, scan):
         AcqDly = data['InfoData_AcqDelay']
         HV = data['InfoData_HV']
         Amplit= data['AmplitG_'+scan]
+        TStamp =data['InfoData_CycleName']
+
+        Tmp=[]
+        for i in range(0,len(TStamp)):
+            try:
+                Tmp.append(datetime.strptime(TStamp[i],'%Y.%m.%d.%H.%M.%S.%f'))
+            except:
+                print('Error Tstamp')
+                Tmp.append(datetime.strptime(TStamp[i-1],'%Y.%m.%d.%H.%M.%S.%f'))
+
+        Tstamp_f=mdates.date2num(Tmp)
 
         if scan == 'OUT':
-            AcqDly = AcqDly + 375
+            AcqDly = AcqDly + 200
 
         c_ax1.plot(HV)
         c_ax1.set_title('PMT High Voltage')
@@ -436,11 +453,14 @@ def plot_report(configuration, scan):
         c_ax1.set_xlabel('Scan number')
         c_ax1.grid()
 
-        c_ax2.plot(CycleStamp)
-        c_ax2.set_title('Cycle Name')
-        c_ax2.set_ylabel('Name')
-        c_ax2.set_xlabel('Scan number')
-        c_ax2.grid()
+        try:
+            c_ax2.plot(CycleStamp)
+            c_ax2.set_title('Cycle Name')
+            c_ax2.set_ylabel('Name')
+            c_ax2.set_xlabel('Scan number')
+            c_ax2.grid()
+        except:
+            pass
 
         c_ax3.plot(AcqDly)
         c_ax3.set_title('Cycle Time')
@@ -448,27 +468,33 @@ def plot_report(configuration, scan):
         c_ax3.set_xlabel('Scan number')
         c_ax3.grid()
 
-        Limit= 600 #5.5
-        Cycle = 'CPS.USER.LHC1'
-        HV_lim_min = 1000
-        HV_lim_max = 0
+        # With Filter
+        # Limit= 600 #5.5
+        # Cycle = 'CPS.USER.LHC1'
+        # HV_lim_min = 1000
+        # HV_lim_max = 0
+        #
+        # Idx = []
+        # Idx.append(np.where((HV[:]>HV_lim_max) & (HV[:]<HV_lim_min) & (CycleStamp[:] == Cycle) & (Amplit[:, 0] < Limit)))
+        # Idx.append(np.where((HV[:]>HV_lim_max) & (HV[:]<HV_lim_min) & (CycleStamp[:] == Cycle) & (Amplit[:, 0] >= Limit) & (Amplit[:, 1] < Limit)))
+        # Idx.append(np.where((HV[:]>HV_lim_max) & (HV[:]<HV_lim_min) & (CycleStamp[:] == Cycle) & (Amplit[:, 1] >= Limit) & (Amplit[:, 2] < Limit)))
+        # Idx.append(np.where((HV[:]>HV_lim_max) & (HV[:]<HV_lim_min) & (CycleStamp[:] == Cycle) & (Amplit[:, 2] >= Limit) & (Amplit[:, 3] < Limit)))
 
+        # Without Filter
         Idx = []
-        Idx.append(np.where((HV[:]>HV_lim_max) & (HV[:]<HV_lim_min) & (CycleStamp[:] == Cycle) & (Amplit[:, 0] < Limit)))
-        Idx.append(np.where((HV[:]>HV_lim_max) & (HV[:]<HV_lim_min) & (CycleStamp[:] == Cycle) & (Amplit[:, 0] >= Limit) & (Amplit[:, 1] < Limit)))
-        Idx.append(np.where((HV[:]>HV_lim_max) & (HV[:]<HV_lim_min) & (CycleStamp[:] == Cycle) & (Amplit[:, 1] >= Limit) & (Amplit[:, 2] < Limit)))
-        Idx.append(np.where((HV[:]>HV_lim_max) & (HV[:]<HV_lim_min) & (CycleStamp[:] == Cycle) & (Amplit[:, 2] >= Limit) & (Amplit[:, 3] < Limit)))
+        Idx.append(np.arange(0, Amplit[:,0].size))
+        Idx.append(np.arange(0, Amplit[:,0].size))
+        Idx.append(np.arange(0, Amplit[:,0].size))
+        Idx.append(np.arange(0, Amplit[:,0].size))
 
+        for c in range(0,2):
 
-        # Idx.append(np.arange(0, Amplit[:,0].size))
-        # Idx.append(np.arange(0, Amplit[:,0].size))
-        # Idx.append(np.arange(0, Amplit[:,0].size))
-        # Idx.append(np.arange(0, Amplit[:,0].size))
+            #ax1.plot_date(Tstamp_f[Idx[c]],1e3*np.abs(Sigmas[Idx[c],c]),Col[c], markersize = 3, label = 'CH '+ str(c))
+            #ax2.plot_date(Tstamp_f[Idx[c]],1e3*Centres[Idx[c],c],Col[c], markersize = 3, label = 'CH '+ str(c))
+            ax1.plot(1e3 * np.abs(Sigmas[Idx[c], c]), Col[c], markersize=3, label='CH ' + str(c))
+            ax2.plot(1e3 * Centres[Idx[c], c], Col[c], markersize=3, label='CH ' + str(c))
 
-        for c in range(0,4):
-
-            ax1.plot(Idx[c],1e3*np.abs(Sigmas[Idx[c],c]),Col[c], markersize = 3, label = 'CH '+ str(c))
-            ax2.plot(Idx[c],1e3*Centres[Idx[c],c],Col[c], markersize = 3, label = 'CH '+ str(c))
+            axq.plot(QTot[Idx[c],c],1e3 * np.abs(Sigmas[Idx[c], c]),Col[c],markersize = 3)
 
             iq_ax1.plot(Imax[:,c],Col[c],markersize = 3, label = 'CH '+ str(c))
             iq_ax2.plot(Amplit[:,c],Col[c],markersize = 3, label = 'CH '+ str(c))
@@ -478,7 +504,7 @@ def plot_report(configuration, scan):
         #print('Mean: ' +str(np.mean(Centres[Interval,Ch])) + 'Err: ' +str(1e3*np.std(Centres[Interval,Ch])))
 
         # For plot Ctime vs Sigma
-        for c in range(0,4):
+        for c in range(0,1):
             ctime_ax1.plot(AcqDly[np.asarray(Idx[c])],Sigmas[Idx[c],c],Col[c], markersize = 3, label = 'CH '+ str(c))
             ctime_ax2.plot(AcqDly[np.asarray(Idx[c])],Centres[Idx[c],c],Col[c], markersize = 3, label = 'CH '+ str(c))
 
@@ -496,14 +522,14 @@ def plot_report(configuration, scan):
 
     ax1.grid()
     ax1.set_title('Beam Size')
-    ax1.set_ylabel('Sigma [mm]')
+    ax1.set_ylabel('Sigma [um]')
     ax1.set_xlabel('Scan number')
     ax1.set_ylim(3500,5500)
     #ax1.legend()
 
     ax2.grid()
     ax2.set_title('Beam Centroid')
-    ax2.set_ylabel('Centroid [mm]')
+    ax2.set_ylabel('Centroid [um]')
     ax2.set_xlabel('Scan number')
     ax2.set_ylim(0,4000)
     #ax2.legend()
@@ -530,13 +556,37 @@ def plot_report_position(Configuration, projected = False):
     pos_in = superplot.add_subplot(321)
     pos_out = superplot.add_subplot(322)
 
+    pos_in.grid()
+    pos_in.set_ylabel('Position')
+    pos_in.set_title('IN SCAN')
+
+    pos_out.grid()
+    pos_out.set_ylabel('Position')
+    pos_out.set_title('OUT SCAN')
+
     speed_in = superplot.add_subplot(323,sharex=pos_in)
     speed_out = superplot.add_subplot(324, sharex=pos_out)
+
+    speed_in.grid()
+    speed_in.set_ylabel('Speed')
+    speed_in.set_xlabel('Time [ms]')
+
+    speed_out.grid()
+    speed_out.set_ylabel('Speed')
+    speed_out.set_xlabel('Time [ms]')
 
     eccentricity_in= superplot.add_subplot(325)
     eccentricity_out = superplot.add_subplot(326)
 
-    filename = configuration.app_datapath + '/Processed/Summary_Processed.mat'
+    eccentricity_in.grid()
+    eccentricity_in.set_xlabel('Position')
+    eccentricity_in.set_ylabel('Error')
+
+    eccentricity_out.grid()
+    eccentricity_out.set_xlabel('Position')
+    eccentricity_out.set_ylabel('Error')
+
+    filename = configuration.app_datapath + '/Processed/Summary_Processed_BPF.mat'
     data = sio.loadmat(filename, struct_as_record=False, squeeze_me=True)
 
     Positions_A_IN_X = data['Positions_A_IN_X']
@@ -594,8 +644,6 @@ def plot_report_position(Configuration, projected = False):
 
         except:
             pass
-
-
 
     #Positions_A_OUT_X[i][0:speed_SA_OUT.size]
     plt.show()
@@ -856,7 +904,7 @@ file_list = utils.mat_list_from_folder_sorted(configuration.app_datapath)
 
 # Process PMT profiles and save on files
 process_amplitudes_and_save(configuration, file_list)
-#plot_report(configuration,'OUT')
+#plot_report(configuration)
 
 # Plot data analysis
-#plot_report_position(configuration, projected = True)
+#plot_report_position(configuration, projected = False)

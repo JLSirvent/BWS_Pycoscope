@@ -887,7 +887,6 @@ def plot_position_summary(configuration, projected = False):
     plt.show()
 
 
-
 # MAIN PROGRAM STARTS HERE:
 # Configuration and Data objects
 configuration = Configuration.Configuration()

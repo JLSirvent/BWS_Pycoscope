@@ -37,6 +37,14 @@ class QTabRawData(QWidget):
         self.plot.y_SA_IN = 1e3 * Data.PS_PSA_IN * Data.PS_Factors[0]
         self.plot.y_SB_IN = 1e3 * Data.PS_PSB_IN * Data.PS_Factors[1]
 
+        # *** Modifications to collect turn clock on CHC from OPS
+        try:
+            self.plot.y_SC_IN = 1e3*Data.PS_PSC_IN * Data.PS_Factors[2]
+            self.plot.y_SC_OUT = 1e3*Data.PS_PSC_OUT * Data.PS_Factors[2]
+        except:
+            pass
+        # ***
+
         self.plot.SA_IN_P = Data_processed.PS_POSA_IN_P
         self.plot.SB_IN_P = Data_processed.PS_POSB_IN_P
         self.plot.x_IN = Data.PS_TimesStart[0] + 1e3*(1.0*np.asarray(range(0,len(Data.PS_PSA_IN))) / Data.PS_Fs)
@@ -69,12 +77,16 @@ class plot(mplCanvas.mplCanvas):
 
         self.y_SA_IN = np.ones(200)
         self.y_SB_IN = np.ones(200)
+        self.y_SC_IN = np.ones(200)
+
         self.SA_IN_P = np.ones(200)
         self.SB_IN_P = np.ones(200)
         self.x_IN = np.ones(200)
 
         self.y_SA_OUT = np.ones(200)
         self.y_SB_OUT = np.ones(200)
+        self.y_SC_OUT = np.ones(200)
+
         self.SA_OUT_P = np.ones(200)
         self.SB_OUT_P = np.ones(200)
         self.x_OUT = np.ones(200)
@@ -189,11 +201,27 @@ class plot(mplCanvas.mplCanvas):
                 PMT_x = self.x_PMT_IN
                 s_title = 'IN'
                 ax_pmt = ax5
+                CLK_Y = self.y_SC_IN
+                CLK_X = self.x_IN
             else:
                 PMT_i = [self.y_PMTA_OUT, self.y_PMTB_OUT, self.y_PMTC_OUT, self.y_PMTD_OUT]
                 PMT_x = self.x_PMT_OUT
+                CLK_Y = self.y_SC_OUT
+                CLK_X = self.x_OUT
                 s_title = 'OUT'
                 ax_pmt = ax6
+
+            try:
+                IndexEdges = utils.detect_index_edges(CLK_Y)
+                print('A')
+                print(len(IndexEdges))
+                print('B')
+                RisesValy = np.ones(len(IndexEdges)) * 0.5
+                RisesValx = CLK_X[IndexEdges]
+                ax_pmt.plot(RisesValx,RisesValy,'.k', label='CLK')
+                #ax_pmt.plot(CLK_X,CLK_Y,'.k', label='CLK')
+            except:
+                pass
 
             for c in range(0,4):
                 try:
@@ -218,6 +246,8 @@ class plot(mplCanvas.mplCanvas):
 
                 except:
                     pass
+
+
                 ax_pmt.set_title('PMTs ' + s_title)
                 ax_pmt.set_xlabel('Time [ms]')
                 ax_pmt.set_ylabel('Amplitude [mV]')

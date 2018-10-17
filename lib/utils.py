@@ -335,9 +335,46 @@ def process_profile_TbT(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample)
     return [np.asarray(Time_p), np.asarray(Amplit_p)]
 
 
-
 def do_projection(Fork_Length, Rotation_Offset, Angle_Correction, Angular_Position):
 
     Projection = Rotation_Offset - Fork_Length * np.cos(np.pi - (Angular_Position + Angle_Correction))
 
     return Projection
+
+def detect_index_edges(Signal_Y, EdgeDetected = 'Rising'):
+
+    min = np.min(Signal_Y)
+    max = np.max(Signal_Y)
+    Thresshold = max-min/2
+
+    prev_sample = Signal_Y[0]
+    Index_Edges = []
+
+    if EdgeDetected == 'Rising':
+        for i in range(1, len(Signal_Y)):
+            curr_sample = Signal_Y[i]
+            if prev_sample < Thresshold and curr_sample > Thresshold:
+                Index_Edges.append(i)
+            prev_sample = curr_sample
+
+    if EdgeDetected == 'Falling':
+        for i in range(1, len(Signal_Y)):
+            curr_sample = Signal_Y[i]
+            if prev_sample > Thresshold and curr_sample < Thresshold:
+                Index_Edges.append(i)
+            prev_sample = curr_sample
+
+    if EdgeDetected == 'Both':
+        for i in range(1,len(Signal_Y)):
+            curr_sample = Signal_Y[i]
+            if prev_sample < Thresshold and curr_sample > Thresshold:
+                Index_Edges.append(i)
+            if prev_sample > Thresshold and curr_sample < Thresshold:
+                Index_Edges.append(i)
+            prev_sample = curr_sample
+
+    plt.plot(Index_Edges)
+    plt.show()
+    return Index_Edges
+
+

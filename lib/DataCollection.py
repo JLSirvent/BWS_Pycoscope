@@ -78,7 +78,10 @@ class DataCollection(QtCore.QThread):
                             float(self.tab_buttons_pannel.buttons_pannel_config.acquisition_config_ops_out_end_txt.text())]
 
             OPS_Ranges = [self.tab_buttons_pannel.buttons_pannel_config.scope_config_box_ops_ch1.currentIndex()+1,
-                          self.tab_buttons_pannel.buttons_pannel_config.scope_config_box_ops_ch2.currentIndex()+1]
+                          self.tab_buttons_pannel.buttons_pannel_config.scope_config_box_ops_ch2.currentIndex()+1,
+                          7]
+
+            print('A')
 
             Index_Start_In_OPS = int(1e-3 * InRange_OPS[0] * Fs_Ops)
             Samples_In_OPS = int(1e-3 * (InRange_OPS[1] - InRange_OPS[0]) * Fs_Ops)
@@ -87,7 +90,7 @@ class DataCollection(QtCore.QThread):
 
             BuffLen_OPS = int(1.2*1e-3*np.amax([InRange_OPS[1]-InRange_OPS[0],OutRange_OPS[1]-OutRange_OPS[0]])*Fs_Ops)
 
-            status_ps_locate_buffer = [0, 0]
+            status_ps_locate_buffer = [0, 0, 0]
 
             # Buffers preparation PMT
             data_pmt = {}
@@ -98,7 +101,7 @@ class DataCollection(QtCore.QThread):
 
             # Buffers preparation OPS
             data_ops = {}
-            for i in range(0,2):
+            for i in range(0,3):
                 data_ops[i] = {}
                 data_ops[i]["max"] = np.empty(BuffLen_OPS, dtype=c_int16)
             self.ps_picoscope.release_all_buffers()
@@ -126,11 +129,17 @@ class DataCollection(QtCore.QThread):
                 print(status_pmt_locate_buffer[i])
 
             # Channels and data buffers configuration OPS
-            for i in range(0,2):
+            for i in range(0,3):
                 s_i, state_i = self.ps_picoscope.get_channel_state(channel=i)
+
                 # Channel Config:
-                state_i.coupling = self.ps_picoscope.m.Couplings.dc50
-                state_i.bwlimit = self.ps_picoscope.m.BWLimit.bw_20M
+                if i == 2:
+                    state_i.coupling = self.pmt_picoscope.m.Couplings.dc1M
+                    state_i.bwlimit = self.pmt_picoscope.m.BWLimit.bw_full
+                else:
+                    state_i.coupling = self.ps_picoscope.m.Couplings.dc50
+                    state_i.bwlimit = self.ps_picoscope.m.BWLimit.bw_20M
+
                 if OPS_Ranges[i] == 1:
                     state_i.enabled = False
                 else:
@@ -193,11 +202,16 @@ class DataCollection(QtCore.QThread):
             t = time.time()
 
             self.notifyState.emit('Rec...')
+
             # Recover info into bufffers: OPS
             self.data_scan.PS_Factors =[self.ps_picoscope.m.Ranges.values[
                                         self.ps_picoscope._channel_set[0].range] / self.ps_picoscope.info.max_adc,
                                         self.ps_picoscope.m.Ranges.values[
-                                        self.ps_picoscope._channel_set[1].range] / self.ps_picoscope.info.max_adc]
+                                        self.ps_picoscope._channel_set[1].range] / self.ps_picoscope.info.max_adc,
+                                        self.ps_picoscope.m.Ranges.values[
+                                        self.ps_picoscope._channel_set[2].range] / self.ps_picoscope.info.max_adc
+                                        ]
+
             self.data_scan.PS_Fs = Fs_Ops
             self.data_scan.PS_TimesStart = [InRange_OPS[0],OutRange_OPS[0]]
 
@@ -215,6 +229,8 @@ class DataCollection(QtCore.QThread):
 
             self.data_scan.PS_PSA_IN = copy.deepcopy(data_ops[0]['max'][0:Samples_In_OPS])
             self.data_scan.PS_PSB_IN = copy.deepcopy(data_ops[1]['max'][0:Samples_In_OPS])
+            self.data_scan.PS_PSC_IN = copy.deepcopy(data_ops[2]['max'][0:Samples_In_OPS])
+
             self.ps_picoscope.release_all_buffers()
 
             # OPS Out
@@ -228,6 +244,8 @@ class DataCollection(QtCore.QThread):
 
             self.data_scan.PS_PSA_OUT = copy.deepcopy(data_ops[0]['max'][0:Samples_Out_OPS])
             self.data_scan.PS_PSB_OUT = copy.deepcopy(data_ops[1]['max'][0:Samples_Out_OPS])
+            self.data_scan.PS_PSC_OUT = copy.deepcopy(data_ops[2]['max'][0:Samples_Out_OPS])
+
             self.ps_picoscope.release_all_buffers()
 
             # Recover info into bufffers: PMT
@@ -303,8 +321,10 @@ class DataCollection(QtCore.QThread):
                          'PS_TimesStart': self.data_scan.PS_TimesStart,
                          'PS_PSA_IN': self.data_scan.PS_PSA_IN,
                          'PS_PSB_IN': self.data_scan.PS_PSB_IN,
+                         'PS_PSC_IN': self.data_scan.PS_PSC_IN,
                          'PS_PSA_OUT': self.data_scan.PS_PSA_OUT,
-                         'PS_PSB_OUT': self.data_scan.PS_PSB_OUT},
+                         'PS_PSB_OUT': self.data_scan.PS_PSB_OUT,
+                         'PS_PSC_OUT': self.data_scan.PS_PSB_OUT},
                          do_compression = True)
             # Note: With data compression TRUE time ~ 6.5seg, without data compresion time ~ 0.5seg
 

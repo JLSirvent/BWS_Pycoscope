@@ -74,9 +74,11 @@ class DataScan:
 
         self.PS_PSA_IN = np.ones(50)
         self.PS_PSB_IN = np.ones(50)
+        self.PS_PSC_IN = np.ones(50)
 
         self.PS_PSA_OUT = np.ones(50)
         self.PS_PSB_OUT = np.ones(50)
+        self.PS_PSC_OUT = np.ones(50)
 
         self.PS_TimeBound_IN = np.ones(2)
         self.PS_TimeBound_OUT = np.ones(2)
@@ -121,6 +123,14 @@ class DataScan:
 
         self.PS_PSA_OUT = data['PS_PSA_OUT']
         self.PS_PSB_OUT = data['PS_PSB_OUT']
+
+        try:
+            self.PS_PSC_IN = data['PS_PSC_IN']
+            self.PS_PSC_OUT = data['PS_PSC_OUT']
+        except:
+            pass
+
+
 
     def load_data(self, path):
         print(path)

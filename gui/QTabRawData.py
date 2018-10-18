@@ -212,14 +212,14 @@ class plot(mplCanvas.mplCanvas):
                 ax_pmt = ax6
 
             try:
-                IndexEdges = utils.detect_index_edges(CLK_Y)
-                print('A')
-                print(len(IndexEdges))
-                print('B')
-                RisesValy = np.ones(len(IndexEdges)) * 0.5
-                RisesValx = CLK_X[IndexEdges]
-                ax_pmt.plot(RisesValx,RisesValy,'.k', label='CLK')
-                #ax_pmt.plot(CLK_X,CLK_Y,'.k', label='CLK')
+                #IndexEdges = utils.detect_index_edges(CLK_Y)
+                #print('A')
+                #print(len(IndexEdges))
+                #print('B')
+                #RisesValy = np.ones(len(IndexEdges)) * 0.5
+                #RisesValx = CLK_X[IndexEdges]
+                #ax_pmt.plot(RisesValx,RisesValy,'.k', label='CLK')
+                ax_pmt.plot(CLK_X,CLK_Y,'k', label='T_CLK')
             except:
                 pass
 
@@ -251,5 +251,6 @@ class plot(mplCanvas.mplCanvas):
                 ax_pmt.set_title('PMTs ' + s_title)
                 ax_pmt.set_xlabel('Time [ms]')
                 ax_pmt.set_ylabel('Amplitude [mV]')
+                ax_pmt.set_xlim(np.min(PMT_x),np.max(PMT_x))
 
         self.fig.tight_layout()

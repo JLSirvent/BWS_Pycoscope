@@ -324,7 +324,7 @@ class DataCollection(QtCore.QThread):
                          'PS_PSC_IN': self.data_scan.PS_PSC_IN,
                          'PS_PSA_OUT': self.data_scan.PS_PSA_OUT,
                          'PS_PSB_OUT': self.data_scan.PS_PSB_OUT,
-                         'PS_PSC_OUT': self.data_scan.PS_PSB_OUT},
+                         'PS_PSC_OUT': self.data_scan.PS_PSC_OUT},
                          do_compression = True)
             # Note: With data compression TRUE time ~ 6.5seg, without data compresion time ~ 0.5seg
 

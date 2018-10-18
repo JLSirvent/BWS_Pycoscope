@@ -372,9 +372,6 @@ def detect_index_edges(Signal_Y, EdgeDetected = 'Rising'):
             if prev_sample > Thresshold and curr_sample < Thresshold:
                 Index_Edges.append(i)
             prev_sample = curr_sample
-
-    plt.plot(Index_Edges)
-    plt.show()
     return Index_Edges
 
 

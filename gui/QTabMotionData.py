@@ -91,12 +91,12 @@ class plot(mplCanvas.mplCanvas):
                 if self.config.show_projected == True:
                     Pos_A[1] = utils.do_projection(Fork_Length=self.config.calib_fork_length,
                                                    Rotation_Offset=self.config.calib_rotation_offset,
-                                                   Fork_Phase=self.config.calib_fork_phase,
+                                                   Angle_Correction=self.config.calib_fork_phase,
                                                    Angular_Position=Pos_A[1])
 
                     Pos_B[1] = utils.do_projection(Fork_Length=self.config.calib_fork_length,
                                                    Rotation_Offset=self.config.calib_rotation_offset,
-                                                   Fork_Phase=self.config.calib_fork_phase,
+                                                   Angle_Correction=self.config.calib_fork_phase,
                                                    Angular_Position=Pos_B[1])
 
                     ax_pos.set_ylabel('Position [mm]')

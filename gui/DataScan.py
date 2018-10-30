@@ -91,7 +91,11 @@ class DataScan:
         data = sio.loadmat(path, struct_as_record=False, squeeze_me=True)
 
         # InfoData
-        self.InfoData_Filter_PRO = data['InfoData_Filter_PRO']
+        try:
+            self.InfoData_Filter_PRO = data['InfoData_Filter_PRO']
+        except:
+            pass
+
         self.InfoData_AcqDelay = data['InfoData_AcqDelay']
         self.InfoData_HV = data['InfoData_HV']
         self.InfoData_CycleStamp = data['InfoData_CycleStamp']
@@ -105,13 +109,17 @@ class DataScan:
 
         self.PMT_PMTA_IN = data['PMT_PMTA_IN']
         self.PMT_PMTB_IN = data['PMT_PMTB_IN']
-        self.PMT_PMTC_IN = data['PMT_PMTC_IN']
-        self.PMT_PMTD_IN = data['PMT_PMTD_IN']
 
         self.PMT_PMTA_OUT = data['PMT_PMTA_OUT']
         self.PMT_PMTB_OUT = data['PMT_PMTB_OUT']
-        self.PMT_PMTC_OUT = data['PMT_PMTC_OUT']
-        self.PMT_PMTD_OUT = data['PMT_PMTD_OUT']
+
+        try:
+            self.PMT_PMTC_IN = data['PMT_PMTC_IN']
+            self.PMT_PMTD_IN = data['PMT_PMTD_IN']
+            self.PMT_PMTC_OUT = data['PMT_PMTC_OUT']
+            self.PMT_PMTD_OUT = data['PMT_PMTD_OUT']
+        except:
+           pass
 
         # Position Sensors
         self.PS_Fs = data['PS_Fs']
@@ -132,64 +140,6 @@ class DataScan:
 
 
 
-    def load_data(self, path):
-        print(path)
-        data = sio.loadmat(path, struct_as_record = False, squeeze_me=True)
-        GenStruct = data['MeasData']
-
-        try:
-            self.InfoData_Filter_PRO = data['InfoData_Filter_PRO']
-            self.InfoData_AcqDelay = data['InfoData_AcqDelay']
-            self.InfoData_HV = data['InfoData_HV']
-            self.InfoData_CycleStamp = data['InfoData_CycleStamp']
-            self.InfoData_CycleName = data['InfoData_CycleName']
-        except:
-            self.InfoData_Filter_PRO = 0
-            self.InfoData_AcqDelay = 0
-            self.InfoData_HV = 0
-            self.InfoData_TimeStamp = ' '
-            self.InfoData_CycleStamp = ' '
-            self.InfoData_CycleName = ' '
-
-        # PhotoMultipliers
-        self.PMT_PMTA_IN = GenStruct.PMT.PMTA_IN * -1.0
-        self.PMT_PMTA_OUT = GenStruct.PMT.PMTA_OUT * -1.0
-
-        try:
-            self.PMT_PMTB_IN = GenStruct.PMT.PMTB_IN * -1.0
-            self.PMT_PMTB_OUT = GenStruct.PMT.PMTB_OUT * -1.0
-        except:
-            pass
-        try:
-            self.PMT_PMTC_IN = GenStruct.PMT.PMTC_IN * -1.0
-            self.PMT_PMTC_OUT = GenStruct.PMT.PMTC_OUT * -1.0
-        except:
-            pass
-        try:
-            self.PMT_PMTD_IN = GenStruct.PMT.PMTD_IN * -1.0
-            self.PMT_PMTD_OUT = GenStruct.PMT.PMTD_OUT * -1.0
-        except:
-            pass
-
-        self.PMT_TimesStart[0] = 1e3 * (1.0*GenStruct.PMT.TimeBound_IN[0]) / GenStruct.PMT.Fs
-        self.PMT_TimesStart[1] = 1e3 * (1.0*GenStruct.PMT.TimeBound_OUT[0]) / GenStruct.PMT.Fs
-
-        self.PMT_Fs = GenStruct.PMT.Fs
-
-        # Position Sensors
-        self.PS_PSA_IN = GenStruct.PS.PSA_IN
-        self.PS_PSB_IN = GenStruct.PS.PSB_IN
-
-        self.PS_PSA_OUT = GenStruct.PS.PSA_OUT
-        self.PS_PSB_OUT = GenStruct.PS.PSB_OUT
-
-        self.PS_TimesStart[0] = 1e3 * (1.0 * GenStruct.PS.TimeBound_IN[0]) / GenStruct.PS.Fs
-        self.PS_TimesStart[1] = 1e3 * (1.0 * GenStruct.PS.TimeBound_OUT[0]) / GenStruct.PS.Fs
-
-        self.PS_Fs = GenStruct.PS.Fs
-
-        self.PS_Factors = [1, 1]
-        self.PMT_Factors = [1, 1, 1, 1]
 
 
 

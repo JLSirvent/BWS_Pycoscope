@@ -180,6 +180,15 @@ class DataCollection(QtCore.QThread):
 
             # Wait for trigger
             self.notifyState.emit('Trig...')
+
+            # Toggle LTIM Delay just after updating Infodata so it does while saving!
+            # ***********************************************************************
+            if float(self.tab_buttons_pannel.buttons_pannel.cycle_selector_dly_txt.text()) == 100:
+                self.tab_buttons_pannel.buttons_pannel.cycle_selector_dly_txt.setText('200')
+            else:
+                self.tab_buttons_pannel.buttons_pannel.cycle_selector_dly_txt.setText('100')
+            # ***********************************************************************
+
                 # Enable LTIM Output
             try:
                 FESAControlsUpdater.SendFESAcommands(self.tab_buttons_pannel, action='LTIM_ON', path= self.configuration.info_datapath)

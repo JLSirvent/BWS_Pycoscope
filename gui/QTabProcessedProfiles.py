@@ -6,6 +6,7 @@ import mplCanvas
 
 from PyQt5 import QtCore
 from scipy.optimize import curve_fit
+from scipy.stats import chisquare,chi2
 from scipy import asarray as ar,exp
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QStackedWidget
 from matplotlib.backends.backend_qt5 import NavigationToolbar2QT as NavigationToolbar
@@ -97,12 +98,34 @@ class plot(mplCanvas.mplCanvas):
                     mean = _x[np.where(_y == np.max(_y))[0]]
                     sigma = 1
                     o = np.min(_y)
+
                     try:
                         popt, pcov = curve_fit(gauss, _x, _y, p0=[a, mean, sigma, o])
-                        ax.plot(_x, _y, color=col[c], label ='CH' + str(c+1) + r' $\sigma$:{0:.2f}'.format(popt[2])+ 'mm' + r' $\mu$:{0:.2f}'.format(popt[1]) + 'mm\n' + 'Imax:{0:.1f}'.format(Imax[c])+ 'uA Qtot:{0:.1f}'.format(Qtot[c]) + 'nC')
-                        ax.plot(_x,gauss(_x,*popt),color ='black')
-                        if c==0:
-                            ax.set_xlim(popt[1]-6*popt[2],popt[1]+6*popt[2])
+                        fit_y = gauss(_x, *popt)
+
+                        # Goodness of FIT
+                        ss_res = np.sum((_y - fit_y) ** 2)
+                        ss_tot = np.sum((_y - np.mean(_y)) ** 2)
+                        r_squared = 1 - (ss_res / ss_tot)
+
+                        # Normalized data for all channels
+                        _ynorm = _y*np.max(_y)**-1
+                        fit_ynorm = fit_y*np.max(_y)**-1
+                        baseline = np.min(fit_ynorm)
+
+                        rmse = 10000*(_ynorm.size)**-1 * np.sum((_ynorm-fit_ynorm)**2)
+                        # if baseline < 0:
+                        X2 = chisquare(f_obs=_ynorm-baseline+0.1, f_exp=fit_ynorm-baseline+0.1)
+
+                        # else:
+                        # X2 = chisquare(f_obs=_ynorm, f_exp=fit_ynorm)
+
+                        #X2[0] = X2[0] * len(_ynorm)**-1
+                        #print(X2[0])
+                        ax.plot(_x, _y, color=col[c], label ='CH' + str(c+1) + r' $\sigma$:{0:.2f}'.format(popt[2])+ 'mm' + r' $\mu$:{0:.2f}'.format(popt[1]) + 'mm\nX2:{0:.2f} '.format(X2[0]) + ' RMSE:{:.1f} '.format(rmse) +'R2:{:.3f}'.format(r_squared)+ '\nImax:{0:.1f}'.format(Imax[c])+ 'uA Qtot:{0:.1f}'.format(Qtot[c]) + 'nC')
+                        ax.plot(_x,fit_y,color ='black')
+                        #if c==0:
+                        #   ax.set_xlim(popt[1]-6*popt[2],popt[1]+6*popt[2])
                     except:
                         ax.plot(_x, _y, color=col[c], label='CH' + str(c + 1) + ' Fit Error' + '\nImax:{0:.1f}'.format(Imax[c])+ 'uA Qtot:{0:.1f}'.format(Qtot[c]) + 'nC')
                 except:

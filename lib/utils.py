@@ -157,16 +157,21 @@ def peakdet(v, delta, x=None):
 
     return array(maxtab), array(mintab)
 
-# Base for All (Emulation of TBT mode) Low pass filters profile
+# Base for All (Emulation of TBT mode) Simply Low pass filters profile and downsample the result
 def process_profile0(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample):
 
     Time = TimeStart + 1e3*(np.arange(0,Amplit.size,1) / SamplingFreq)
     Amplit = butter_lowpass_filter(Amplit, FilterFreq, SamplingFreq, order=1)
 
+    Amplit = Amplit[50000:]
+    Time = Time[50000:]
+
     Amplit_p = Amplit[::Downsample]
     Time_p = Time[::Downsample]
 
     return [Time_p, Amplit_p]
+
+
 
 # For PS
 def process_profile_PS(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample):
@@ -204,24 +209,27 @@ def process_profile_PS2(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample)
     indexes = detect_peaks(Amplit, mpd=mpd)
 
     #IntegralAround = np.int(1.13e-6 * SamplingFreq)
-    IntegralAround =  np.int(100e-9*SamplingFreq) # Integrals of 200ns
+    IntegralAround =  np.int(200e-9*SamplingFreq) # Integrals of 200ns
     indexes = indexes[10:len(indexes)-10]
 
-    plt.plot(Time,Amplit)
-    plt.plot(Time[indexes-IntegralAround],Amplit[indexes-IntegralAround],'.b')
-    plt.plot(Time[indexes+IntegralAround],Amplit[indexes+IntegralAround],'.r')
-    plt.show()
+    #plt.plot(Time,Amplit)
+    #plt.plot(Time[indexes-IntegralAround],Amplit[indexes-IntegralAround],'.b')
+    #plt.plot(Time[indexes+IntegralAround],Amplit[indexes+IntegralAround],'.r')
+    #plt.show()
 
     Amplit_p=[]
+    Baseline = []
     for i in indexes:
         Amplit_p.append(np.sum(Amplit[i-IntegralAround:i+IntegralAround]))
+        Baseline.append(np.sum(Amplit[i-2*IntegralAround:i-IntegralAround]))
 
+    Amplit_p = np.asarray(Amplit_p) - np.asarray(Baseline)
     #Amplit_p = np.asarray(Amplit_p)
     Time_p = Time[indexes]
 
-    Averaging_Window = 5
-    Amplit_p = np.convolve(Amplit_p, np.ones((Averaging_Window,)) / Averaging_Window, mode='valid')
-    Time_p = np.convolve(Time_p, np.ones((Averaging_Window,)) / Averaging_Window, mode='valid')
+    #Averaging_Window = 5
+    #Amplit_p = np.convolve(Amplit_p, np.ones((Averaging_Window,)) / Averaging_Window, mode='valid')
+    #Time_p = np.convolve(Time_p, np.ones((Averaging_Window,)) / Averaging_Window, mode='valid')
 
     return [Time_p, Amplit_p]
 
@@ -231,7 +239,10 @@ def process_profile_PS3(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample)
     Low = 2e6
 
     Time = TimeStart + 1e3 * (np.arange(0, Amplit.size, 1) / SamplingFreq)
+    #plt.plot(Time,Amplit)
     Amplit = butter_bandpass_filter(Amplit,Low, High, SamplingFreq, order=1)
+    #plt.plot(Time,Amplit)
+
 
     mpd = np.int(2e-6 * SamplingFreq)
     indexes = detect_peaks(Amplit, mpd=mpd)
@@ -240,9 +251,7 @@ def process_profile_PS3(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample)
     #IntegralAround =  np.int(100e-9*SamplingFreq)  Integrals of 200ns
     #indexes = indexes[10:len(indexes)-10]
 
-    #plt.plot(Time,Amplit)
-    #plt.plot(Time[indexes],Amplit[indexes],'.b')
-    #plt.plot(Time[indexes+IntegralAround],Amplit[indexes+IntegralAround],'.r')
+    #plt.plot(Time[indexes],Amplit[indexes],'.r')
     #plt.show()
 
     Amplit_p = Amplit[indexes]

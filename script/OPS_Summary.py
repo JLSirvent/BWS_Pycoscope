@@ -6,6 +6,7 @@ sys.path.append('../lib')
 import numpy as np
 import scipy.io as sio
 import ops_processing, utils
+from scipy.stats import chisquare,chi2
 import Configuration, DataScan, DataScan_Processed
 
 from datetime import datetime
@@ -16,7 +17,6 @@ from matplotlib import colors as colors
 import matplotlib.dates as mdates
 
 from scipy.optimize import curve_fit
-
 
 def process_ops_and_save(configuration, file_list):
     angular_position_SA_IN = []
@@ -135,8 +135,14 @@ def process_amplitudes_and_save(configuration, file_list):
     Profiles_OUT_C = []
     Profiles_OUT_D = []
 
-    Positions_IN = []
-    Positions_OUT = []
+    Positions_IN_A = []
+    Positions_OUT_A = []
+    Positions_IN_B = []
+    Positions_OUT_B = []
+    Positions_IN_C = []
+    Positions_OUT_C = []
+    Positions_IN_D = []
+    Positions_OUT_D = []
 
     Imax_IN=[]
     Imax_OUT=[]
@@ -150,6 +156,13 @@ def process_amplitudes_and_save(configuration, file_list):
     AmplitG_IN = []
     AmplitG_OUT = []
 
+    GOF_Rsquared_IN= []
+    GOF_RMSE_IN= []
+    GOF_X2_IN= []
+
+    GOF_Rsquared_OUT= []
+    GOF_RMSE_OUT= []
+    GOF_X2_OUT = []
 
     data_scan = DataScan.DataScan()
     data_scan_processed = DataScan_Processed.DataScan_Processed()
@@ -206,8 +219,17 @@ def process_amplitudes_and_save(configuration, file_list):
         Profiles_OUT_C.append(np.array(100*data_scan_processed.PMT_OUT[2][1]))
         Profiles_OUT_D.append(np.array(100*data_scan_processed.PMT_OUT[3][1]))
         #
-        Positions_IN.append(np.array(data_scan_processed.PS_POSA_IN_Proj[0][1]))
-        Positions_OUT.append(np.array(data_scan_processed.PS_POSA_OUT_Proj[0][1]))
+        Positions_IN_A.append(np.array(data_scan_processed.PS_POSA_IN_Proj[0][1]))
+        Positions_OUT_A.append(np.array(data_scan_processed.PS_POSA_OUT_Proj[0][1]))
+
+        Positions_IN_B.append(np.array(data_scan_processed.PS_POSA_IN_Proj[1][1]))
+        Positions_OUT_B.append(np.array(data_scan_processed.PS_POSA_OUT_Proj[1][1]))
+
+        Positions_IN_C.append(np.array(data_scan_processed.PS_POSA_IN_Proj[2][1]))
+        Positions_OUT_C.append(np.array(data_scan_processed.PS_POSA_OUT_Proj[2][1]))
+
+        Positions_IN_D.append(np.array(data_scan_processed.PS_POSA_IN_Proj[3][1]))
+        Positions_OUT_D.append(np.array(data_scan_processed.PS_POSA_OUT_Proj[3][1]))
 
         # Process Profiles Data
         Imax_IN.append(data_scan_processed.PMT_IN_Imax[0:4])
@@ -222,6 +244,9 @@ def process_amplitudes_and_save(configuration, file_list):
             Sigmas = np.ones(4) * 0
             Centres = np.ones(4) * 100
             AmplitG = np.ones(4) * 0
+            GOF_Rsquared = np.ones(4) *0
+            GOF_RMSE = np.ones(4) *0
+            GOF_X2 = np.ones(4) *0
 
             if s == 0:
                 PMT_Data = data_scan_processed.PMT_IN
@@ -230,31 +255,50 @@ def process_amplitudes_and_save(configuration, file_list):
                 PMT_Data = data_scan_processed.PMT_OUT
                 PMT_Pos = data_scan_processed.PS_POSA_OUT_Proj
 
-            for c in range(0,4):
+            for c in range(0,2):
                 try:
                     _y = np.asarray(PMT_Data[c][1])
                     _x = np.asarray(PMT_Pos[c][1])
 
+                # Evaluate the Fit the data and calculate GOF trough Rsquared
+                    # Starting points
                     a = 0.5 #np.max(_y) - np.min(_y)
                     mean = _x[np.where(_y == np.max(_y))[0]]
                     sigma = 2
                     o = np.min(_y)
 
+                    # Fit curve and determine GOF
                     popt, pcov = curve_fit(gauss, _x, _y, p0=[a, mean, sigma, o])
+                    fit_y = gauss(_x,*popt)
+
+                    # Goodness of FIT
+                    ss_res = np.sum((_y - fit_y) ** 2)
+                    ss_tot = np.sum((_y - np.mean(_y)) ** 2)
+                    r_squared = 1 - (ss_res / ss_tot)
+
+                    # Normalized data for all channels
+                    _ynorm = _y * np.max(_y) ** -1
+                    fit_ynorm = fit_y * np.max(_y) ** -1
+                    baseline = np.min(fit_ynorm)
+
+                    rmse = 10000 * (_ynorm.size) ** -1 * np.sum((_ynorm - fit_ynorm) ** 2)
+                    X_2 = chisquare(f_obs=_ynorm - baseline + 0.1, f_exp=fit_ynorm - baseline + 0.1)
 
                     Sigmas[c] = popt[2]
                     Centres[c] = popt[1]
                     AmplitG[c] = popt[0] - popt[3]
+                    GOF_Rsquared[c] = r_squared
+                    GOF_RMSE[c] = rmse
+                    GOF_X2[c] = X_2[0]
 
                     axp = ax[c + s*4]
-
                     axp.clear()
                     axp.set_title('Profile CH' + str(c))
                     axp.set_xlabel('Position [mm]')
                     axp.set_ylabel('Amplitude [a.u]')
                     axp.grid()
                     axp.plot(_x,_y, 'b')
-                    axp.plot(_x,gauss(_x,*popt),'r', label = 'Sigma: {:.2f}'.format(Sigmas[c]) + 'mm\n' + 'Centre: {:.1f}'.format(Centres[c]))
+                    axp.plot(_x,fit_y,'r', label = 'Sigma: {:.2f}'.format(Sigmas[c]) + 'mm\nCentre: {:.1f}'.format(Centres[c])+ '\nGOF_X2:{:.2f}'.format(GOF_X2[c]))
                     axp.legend(loc='upper right')
                     fig.canvas.draw()
                     plt.pause(0.01)
@@ -266,14 +310,20 @@ def process_amplitudes_and_save(configuration, file_list):
                 Sigmas_IN.append(Sigmas)
                 Centres_IN.append(Centres)
                 AmplitG_IN.append(AmplitG)
+                GOF_Rsquared_IN.append(GOF_Rsquared)
+                GOF_RMSE_IN.append(GOF_RMSE)
+                GOF_X2_IN.append(GOF_X2)
             else:
                 Sigmas_OUT.append(Sigmas)
                 Centres_OUT.append(Centres)
                 AmplitG_OUT.append(AmplitG)
+                GOF_Rsquared_OUT.append(GOF_Rsquared)
+                GOF_RMSE_OUT.append(GOF_RMSE)
+                GOF_X2_OUT.append(GOF_X2)
 
         cnt = cnt + 1
         #if cnt == 3:
-        #    break
+        #   break
 
     sio.savemat(configuration.app_datapath + '/Processed/Summary_Processed.mat',
                 {'InfoData_CycleStamp': InfoData_CycleStamp,
@@ -282,24 +332,18 @@ def process_amplitudes_and_save(configuration, file_list):
                  'InfoData_HV': InfoData_HV,
                  'InfoData_CycleName': InfoData_CycleName,
                  'InfoData_AcqDelay': InfoData_AcqDelay,
-                 'Profiles_IN_A': Profiles_IN_A,
-                 'Profiles_IN_B': Profiles_IN_B,
-                 'Profiles_IN_C': Profiles_IN_C,
-                 'Profiles_IN_D': Profiles_IN_D,
-                 'Profiles_OUT_A': Profiles_OUT_A,
-                 'Profiles_OUT_B': Profiles_OUT_B,
-                 'Profiles_OUT_C': Profiles_OUT_C,
-                 'Profiles_OUT_D': Profiles_OUT_D,
-                 'Positions_IN' : Positions_IN,
-                 'Positions_OUT' : Positions_OUT,
-                 'Positions_A_IN_X' : Positions_A_IN_X,
-                 'Positions_B_IN_X' : Positions_B_IN_X,
-                 'Positions_A_OUT_X': Positions_A_OUT_X,
-                 'Positions_B_OUT_X': Positions_B_OUT_X,
-                 'Positions_A_IN_Y': Positions_A_IN_Y,
-                 'Positions_B_IN_Y': Positions_B_IN_Y,
-                 'Positions_A_OUT_Y': Positions_A_OUT_Y,
-                 'Positions_B_OUT_Y': Positions_B_OUT_Y,
+                 'Profiles_IN_A': [[Positions_IN_A],[Profiles_IN_A]],
+                 'Profiles_IN_B': [[Positions_IN_B],[Profiles_IN_B]],
+                 'Profiles_IN_C': [[Positions_IN_C],[Profiles_IN_C]],
+                 'Profiles_IN_D': [[Positions_IN_D],[Profiles_IN_D]],
+                 'Profiles_OUT_A': [[Positions_OUT_A],[Positions_OUT_A]],
+                 'Profiles_OUT_B': [[Positions_OUT_B],[Positions_OUT_B]],
+                 'Profiles_OUT_C': [[Positions_OUT_C],[Positions_OUT_C]],
+                 'Profiles_OUT_D': [[Positions_OUT_D],[Positions_OUT_D]],
+                 'Positions_A_IN' : [[Positions_A_IN_X],[Positions_A_IN_Y]],
+                 'Positions_B_IN' : [[Positions_B_IN_X],[Positions_B_IN_Y]],
+                 'Positions_A_OUT': [[Positions_A_OUT_X],[Positions_A_OUT_Y]],
+                 'Positions_B_OUT': [[Positions_B_OUT_X],[Positions_B_OUT_Y]],
                  'Sigmas_IN': Sigmas_IN,
                  'Sigmas_OUT': Sigmas_OUT,
                  'Centres_IN':Centres_IN,
@@ -309,7 +353,13 @@ def process_amplitudes_and_save(configuration, file_list):
                  'Qtot_IN': Qtot_IN,
                  'Qtot_OUT': Qtot_OUT,
                  'Imax_IN': Imax_IN,
-                 'Imax_OUT': Imax_OUT
+                 'Imax_OUT': Imax_OUT,
+                 'GOF_X2_IN': GOF_X2_IN,
+                 'GOF_X2_OUT': GOF_X2_OUT,
+                 'GOF_RMSE_IN': GOF_RMSE_IN,
+                 'GOF_RMSE_OUT': GOF_RMSE_OUT,
+                 'GOF_Rsquared_IN':GOF_Rsquared_IN,
+                 'GOF_Rsquared_OUT': GOF_Rsquared_OUT
                  },
                   do_compression = True)
 
@@ -408,15 +458,16 @@ def plot_report(configuration):
     c_ax3 = superplot_cond.add_subplot(313, sharex=c_ax1)
 
     superplot = plt.figure(figsize = [15,9])
-    ax2 = superplot.add_subplot(211)
-    ax1 = superplot.add_subplot(212,sharex=ax2)
+    ax0 = superplot.add_subplot(311)
+    ax2 = superplot.add_subplot(312,sharex=ax0)
+    ax1 = superplot.add_subplot(313,sharex=ax0)
 
     superplot_Q_Sigma = plt.figure(figsize = [15,9])
     axq = superplot_Q_Sigma.add_subplot(111)
     axq.grid()
     # FilterData
-    CycleStamp=data['InfoData_CycleStamp']
-
+    CycleStamp=data['InfoData_CycleName']
+    print(CycleStamp[:])
     for s in range(0,2):
         if s==0:
             scan = 'IN'
@@ -425,6 +476,7 @@ def plot_report(configuration):
             scan = 'OUT'
             Col = ['or', 'oy', '--sg', 'sy']
 
+        GOF = data['GOF_X2_'+scan]
         Sigmas = data['Sigmas_'+scan]
         Centres= data['Centres_'+scan]
         Imax = data['Imax_'+scan]
@@ -491,6 +543,7 @@ def plot_report(configuration):
 
             #ax1.plot_date(Tstamp_f[Idx[c]],1e3*np.abs(Sigmas[Idx[c],c]),Col[c], markersize = 3, label = 'CH '+ str(c))
             #ax2.plot_date(Tstamp_f[Idx[c]],1e3*Centres[Idx[c],c],Col[c], markersize = 3, label = 'CH '+ str(c))
+            ax0.plot(GOF[Idx[c],c],Col[c], markersize=3, label='CH ' + str(c))
             ax1.plot(1e3 * np.abs(Sigmas[Idx[c], c]), Col[c], markersize=3, label='CH ' + str(c))
             ax2.plot(1e3 * Centres[Idx[c], c], Col[c], markersize=3, label='CH ' + str(c))
 
@@ -520,18 +573,24 @@ def plot_report(configuration):
     #ctime_ax1.set_ylim(0,4)
     #ctime_ax1.set_xlim(200,1650)
 
+    ax0.grid()
+    ax0.set_title('GOF')
+    ax0.set_ylabel('RMSE')
+    #ax0.set_xlabel('Scan Number')
+    #ax0.set_ylim(0.98, 1.01)
+
     ax1.grid()
     ax1.set_title('Beam Size')
     ax1.set_ylabel('Sigma [um]')
     ax1.set_xlabel('Scan number')
-    ax1.set_ylim(3500,5500)
+    ax1.set_ylim(1000,5500)
     #ax1.legend()
 
     ax2.grid()
     ax2.set_title('Beam Centroid')
     ax2.set_ylabel('Centroid [um]')
-    ax2.set_xlabel('Scan number')
-    ax2.set_ylim(0,4000)
+    #ax2.set_xlabel('Scan number')
+    ax2.set_ylim(-4000,4000)
     #ax2.legend()
 
     iq_ax1.grid()
@@ -551,6 +610,18 @@ def plot_report(configuration):
     plt.show()
 
 def plot_report_position(Configuration, projected = False):
+
+    superplot_hist = plt.figure(figsize=[15,9])
+    ax_in = superplot_hist.add_subplot(211)
+    ax_in.grid()
+    ax_in.set_title('Time at beam chamber crossing IN')
+    ax_in.set_ylabel('Time [ms]')
+    ax_out = superplot_hist.add_subplot(212)
+    ax_out.set_title('Time at beam chamber crossing out')
+    ax_out.set_ylabel('Time [ms]')
+    ax_out.set_xlabel('Scan Number')
+    ax_out.grid()
+
     superplot = plt.figure(figsize = [15,9])
 
     pos_in = superplot.add_subplot(321)
@@ -586,33 +657,50 @@ def plot_report_position(Configuration, projected = False):
     eccentricity_out.set_xlabel('Position')
     eccentricity_out.set_ylabel('Error')
 
-    filename = configuration.app_datapath + '/Processed/Summary_Processed_BPF.mat'
+    filename = configuration.app_datapath + '/Processed/Summary_Processed.mat'
     data = sio.loadmat(filename, struct_as_record=False, squeeze_me=True)
 
-    Positions_A_IN_X = data['Positions_A_IN_X']
-    Positions_A_IN_Y = data['Positions_A_IN_Y']
-    Positions_B_IN_X = data['Positions_B_IN_X']
-    Positions_B_IN_Y = data['Positions_B_IN_Y']
+    Positions_A_IN_X = data['Positions_A_IN'][0]
+    Positions_A_IN_Y = data['Positions_A_IN'][1]
+    Positions_A_OUT_X = data['Positions_A_OUT'][0]
+    Positions_A_OUT_Y = data['Positions_A_OUT'][1]
 
-    Positions_A_OUT_X = data['Positions_A_OUT_X']
-    Positions_A_OUT_Y = data['Positions_A_OUT_Y']
-    Positions_B_OUT_X = data['Positions_B_OUT_X']
-    Positions_B_OUT_Y = data['Positions_B_OUT_Y']
+    Positions_B_IN_X = data['Positions_B_IN'][0]
+    Positions_B_IN_Y = data['Positions_B_IN'][1]
+    Positions_B_OUT_X = data['Positions_B_OUT'][0]
+    Positions_B_OUT_Y = data['Positions_B_OUT'][1]
 
     Scans  = len(Positions_A_IN_X)
 
-    for i in range(0,Scans):
+    Time_at_zero_IN = []
+    Time_at_zero_OUT= []
+
+    for i in range(100,150):#range(0,Scans):
 
         if projected == True:
             Positions_A_IN_Y[i] = utils.do_projection(configuration.calib_fork_length,
                                                    configuration.calib_rotation_offset,
                                                    configuration.calib_fork_phase, Positions_A_IN_Y[i])
+            try:
+                Idx = np.where(Positions_A_IN_Y[i] < 0)[0][0]
+                Time_at_zero_IN.append(Positions_A_IN_X[i][Idx])
+            except:
+                pass
+                #Time_at_zero_IN.append(0)
+
             Positions_B_IN_Y[i] = utils.do_projection(configuration.calib_fork_length,
                                                    configuration.calib_rotation_offset,
                                                    configuration.calib_fork_phase, Positions_B_IN_Y[i])
             Positions_A_OUT_Y[i] = utils.do_projection(configuration.calib_fork_length,
                                                    configuration.calib_rotation_offset,
                                                    configuration.calib_fork_phase, Positions_A_OUT_Y[i])
+            try:
+                Idx = np.where(Positions_A_OUT_Y[i] < 0)[0][0]
+                Time_at_zero_OUT.append(Positions_A_OUT_X[i][Idx])
+            except:
+                pass
+                #Time_at_zero_OUT.append(0)
+
             Positions_B_OUT_Y[i] = utils.do_projection(configuration.calib_fork_length,
                                                    configuration.calib_rotation_offset,
                                                    configuration.calib_fork_phase, Positions_B_OUT_Y[i])
@@ -644,6 +732,16 @@ def plot_report_position(Configuration, projected = False):
 
         except:
             pass
+
+    #print(Time_at_zero_IN)
+
+    #Idx = np.asarray(np.where((Time_at_zero_IN > 20) & ((Time_at_zero_IN > 23))))
+    ax_in.plot(Time_at_zero_IN,'.b')
+    ax_out.plot(Time_at_zero_OUT,'.b')
+
+    #ax_in.hist(np.asarray(Time_at_zero_IN))
+    #ax_out.hist(np.asarray(Time_at_zero_OUT))
+
 
     #Positions_A_OUT_X[i][0:speed_SA_OUT.size]
     plt.show()
@@ -886,7 +984,6 @@ def plot_position_summary(configuration, projected = False):
     superplot.tight_layout()
     plt.show()
 
-
 # MAIN PROGRAM STARTS HERE:
 # Configuration and Data objects
 configuration = Configuration.Configuration()
@@ -906,4 +1003,4 @@ process_amplitudes_and_save(configuration, file_list)
 #plot_report(configuration)
 
 # Plot data analysis
-#plot_report_position(configuration, projected = False)
+#plot_report_position(configuration, projected = True)

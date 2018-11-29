@@ -187,10 +187,12 @@ def process_amplitudes_and_save(configuration, file_list):
         print("Completed:{}%".format(100*cnt/total_files)+ " File: " + single_file.split('\\')[-1])
 
         data_scan.load_data_v2(single_file)
+
         data_scan_processed.process_data(data_scan, configuration)
 
         # Concatenate InfoData
-        InfoData_CycleStamp.append(data_scan.InfoData_CycleStamp)
+        InfoData_CycleStamp.append(single_file.split('\\')[-1])
+        #InfoData_CycleStamp.append(data_scan.InfoData_CycleStamp)
         InfoData_TimeStamp.append(data_scan.InfoData_TimeStamp)
         InfoData_Filter_PRO.append(data_scan.InfoData_Filter_PRO)
         InfoData_HV.append(data_scan.InfoData_HV)
@@ -255,7 +257,7 @@ def process_amplitudes_and_save(configuration, file_list):
                 PMT_Data = data_scan_processed.PMT_OUT
                 PMT_Pos = data_scan_processed.PS_POSA_OUT_Proj
 
-            for c in range(0,2):
+            for c in range(0,4):
                 try:
                     _y = np.asarray(PMT_Data[c][1])
                     _x = np.asarray(PMT_Pos[c][1])
@@ -267,7 +269,25 @@ def process_amplitudes_and_save(configuration, file_list):
                     sigma = 2
                     o = np.min(_y)
 
-                    # Fit curve and determine GOF
+                    # First Fit
+                    popt, pcov = curve_fit(gauss, _x, _y, p0=[a, mean, sigma, o])
+
+                    # Trimm for simetric beam profiles
+                    Around = 6.5 * np.abs(popt[2])
+                    s_Left = Around
+                    s_Right = Around
+
+                    if popt[1]+Around > np.max(_x):
+                        s_Right = abs(np.max(_x) - popt[1])
+
+                    if popt[1]-Around < np.min(_x):
+                        s_Left = np.abs(np.min(_x) + popt[1])
+
+                    Indexes = np.where((_x>popt[1]-s_Left) & (_x<popt[1]+s_Right))
+                    _y = _y[Indexes]
+                    _x = _x[Indexes]
+
+                    # Second Fit  and determine GOF
                     popt, pcov = curve_fit(gauss, _x, _y, p0=[a, mean, sigma, o])
                     fit_y = gauss(_x,*popt)
 
@@ -284,7 +304,7 @@ def process_amplitudes_and_save(configuration, file_list):
                     rmse = 10000 * (_ynorm.size) ** -1 * np.sum((_ynorm - fit_ynorm) ** 2)
                     X_2 = chisquare(f_obs=_ynorm - baseline + 0.1, f_exp=fit_ynorm - baseline + 0.1)
 
-                    Sigmas[c] = popt[2]
+                    Sigmas[c] = np.abs(popt[2])
                     Centres[c] = popt[1]
                     AmplitG[c] = popt[0] - popt[3]
                     GOF_Rsquared[c] = r_squared
@@ -322,7 +342,7 @@ def process_amplitudes_and_save(configuration, file_list):
                 GOF_X2_OUT.append(GOF_X2)
 
         cnt = cnt + 1
-        #if cnt == 3:
+        #if cnt == 10:
         #   break
 
     sio.savemat(configuration.app_datapath + '/Processed/Summary_Processed.mat',
@@ -336,10 +356,10 @@ def process_amplitudes_and_save(configuration, file_list):
                  'Profiles_IN_B': [[Positions_IN_B],[Profiles_IN_B]],
                  'Profiles_IN_C': [[Positions_IN_C],[Profiles_IN_C]],
                  'Profiles_IN_D': [[Positions_IN_D],[Profiles_IN_D]],
-                 'Profiles_OUT_A': [[Positions_OUT_A],[Positions_OUT_A]],
-                 'Profiles_OUT_B': [[Positions_OUT_B],[Positions_OUT_B]],
-                 'Profiles_OUT_C': [[Positions_OUT_C],[Positions_OUT_C]],
-                 'Profiles_OUT_D': [[Positions_OUT_D],[Positions_OUT_D]],
+                 'Profiles_OUT_A': [[Positions_OUT_A],[Profiles_OUT_A]],
+                 'Profiles_OUT_B': [[Positions_OUT_B],[Profiles_OUT_B]],
+                 'Profiles_OUT_C': [[Positions_OUT_C],[Profiles_OUT_C]],
+                 'Profiles_OUT_D': [[Positions_OUT_D],[Profiles_OUT_D]],
                  'Positions_A_IN' : [[Positions_A_IN_X],[Positions_A_IN_Y]],
                  'Positions_B_IN' : [[Positions_B_IN_X],[Positions_B_IN_Y]],
                  'Positions_A_OUT': [[Positions_A_OUT_X],[Positions_A_OUT_Y]],
@@ -987,6 +1007,7 @@ def plot_position_summary(configuration, projected = False):
 # MAIN PROGRAM STARTS HERE:
 # Configuration and Data objects
 configuration = Configuration.Configuration()
+configuration.app_datapath = 'G:/Projects/BWS_Calibrations/Tunnel_Tests/2018_10_05_PS_PXBWSRB011_CR000001_QPMT_Tests'
 
 # Make file list from folder content (sorted)
 file_list = utils.mat_list_from_folder_sorted(configuration.app_datapath)

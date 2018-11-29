@@ -94,6 +94,12 @@ class plot(mplCanvas.mplCanvas):
                 try:
                     _x = np.asarray(x[c][1])
                     _y = np.asarray(y[c][1])
+
+                    # Normalization and offset
+                    #Offset = 0.1
+                    #_y = _y / np.max(_y)
+                    #_y = _y + Offset*4 - Offset *c
+
                     a = np.max(_y) - np.min(_y)
                     mean = _x[np.where(_y == np.max(_y))[0]]
                     sigma = 1

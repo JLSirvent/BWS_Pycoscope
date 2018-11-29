@@ -115,11 +115,15 @@ class DataScan:
 
         try:
             self.PMT_PMTC_IN = data['PMT_PMTC_IN']
-            self.PMT_PMTD_IN = data['PMT_PMTD_IN']
             self.PMT_PMTC_OUT = data['PMT_PMTC_OUT']
-            self.PMT_PMTD_OUT = data['PMT_PMTD_OUT']
         except:
            pass
+
+        try:
+            self.PMT_PMTD_IN = data['PMT_PMTD_IN']
+            self.PMT_PMTD_OUT = data['PMT_PMTD_OUT']
+        except:
+            pass
 
         # Position Sensors
         self.PS_Fs = data['PS_Fs']

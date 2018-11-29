@@ -106,8 +106,8 @@ class plot(mplCanvas.mplCanvas):
                     ax_pos.set_ylabel('Position [rad]')
                     ax_spe.set_ylabel('Speed [rad/s]')
 
-            ax_pos.plot(Pos_A[0], Pos_A[1])
-            ax_pos.plot(Pos_B[0], Pos_B[1])
+            ax_pos.plot(Pos_A[0], Pos_A[1],'b',label='A')
+            ax_pos.plot(Pos_B[0], Pos_B[1],'r',label='B')
             ax_pos.set_title('Position - ' + Scan)
             ax_pos.set_xlabel('Time [ms]')
 
@@ -117,8 +117,8 @@ class plot(mplCanvas.mplCanvas):
                 SpeedB = np.divide(np.diff(Pos_B[1]), np.diff(1e-3*Pos_B[0]))
                 SpeedB = np.convolve(SpeedB, np.ones((N,)) / N, mode='valid')
 
-                ax_spe.plot(Pos_A[0][0:SpeedA.size],SpeedA)
-                ax_spe.plot(Pos_B[0][0:SpeedB.size],SpeedB)
+                ax_spe.plot(Pos_A[0][0:SpeedA.size],SpeedA,'b',label ='A')
+                ax_spe.plot(Pos_B[0][0:SpeedB.size],SpeedB,'r',label ='B')
 
                 ax_spe.set_title('Speed - ' + Scan)
                 ax_spe.set_xlabel('Time [ms]')

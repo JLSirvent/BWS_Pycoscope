@@ -211,7 +211,7 @@ class plot(mplCanvas.mplCanvas):
                 s_title = 'OUT'
                 ax_pmt = ax6
 
-            try:
+                #try:
                 #IndexEdges = utils.detect_index_edges(CLK_Y)
                 #print('A')
                 #print(len(IndexEdges))
@@ -219,9 +219,9 @@ class plot(mplCanvas.mplCanvas):
                 #RisesValy = np.ones(len(IndexEdges)) * 0.5
                 #RisesValx = CLK_X[IndexEdges]
                 #ax_pmt.plot(RisesValx,RisesValy,'.k', label='CLK')
-                ax_pmt.plot(CLK_X,CLK_Y,'k', label='T_CLK')
-            except:
-                pass
+                #ax_pmt.plot(CLK_X,CLK_Y,'k', label='T_CLK')
+                #except:
+                #pass
 
             for c in range(0,4):
                 try:

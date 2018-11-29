@@ -81,8 +81,6 @@ class DataCollection(QtCore.QThread):
                           self.tab_buttons_pannel.buttons_pannel_config.scope_config_box_ops_ch2.currentIndex()+1,
                           7]
 
-            print('A')
-
             Index_Start_In_OPS = int(1e-3 * InRange_OPS[0] * Fs_Ops)
             Samples_In_OPS = int(1e-3 * (InRange_OPS[1] - InRange_OPS[0]) * Fs_Ops)
             Index_Start_Out_OPS = int(1e-3 * OutRange_OPS[0] * Fs_Ops)
@@ -137,7 +135,7 @@ class DataCollection(QtCore.QThread):
                     state_i.coupling = self.pmt_picoscope.m.Couplings.dc1M
                     state_i.bwlimit = self.pmt_picoscope.m.BWLimit.bw_full
                 else:
-                    state_i.coupling = self.ps_picoscope.m.Couplings.dc50
+                    state_i.coupling = self.ps_picoscope.m.Couplings.dc1M
                     state_i.bwlimit = self.ps_picoscope.m.BWLimit.bw_20M
 
                 if OPS_Ranges[i] == 1:
@@ -183,10 +181,10 @@ class DataCollection(QtCore.QThread):
 
             # Toggle LTIM Delay just after updating Infodata so it does while saving!
             # ***********************************************************************
-            if float(self.tab_buttons_pannel.buttons_pannel.cycle_selector_dly_txt.text()) == 100:
-                self.tab_buttons_pannel.buttons_pannel.cycle_selector_dly_txt.setText('200')
-            else:
-                self.tab_buttons_pannel.buttons_pannel.cycle_selector_dly_txt.setText('100')
+            #if float(self.tab_buttons_pannel.buttons_pannel.cycle_selector_dly_txt.text()) == 74:
+            #    self.tab_buttons_pannel.buttons_pannel.cycle_selector_dly_txt.setText('349')
+            #else:
+            #    self.tab_buttons_pannel.buttons_pannel.cycle_selector_dly_txt.setText('74')
             # ***********************************************************************
 
                 # Enable LTIM Output

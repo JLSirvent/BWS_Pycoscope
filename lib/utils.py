@@ -243,6 +243,11 @@ def process_profile_PS3(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample)
     Amplit = butter_bandpass_filter(Amplit,Low, High, SamplingFreq, order=1)
     #plt.plot(Time,Amplit)
 
+    # Trimm the vectors around centre
+    #TimeAround = np.int(2e3/SamplingFreq)
+    #IndexCentre = np.where(Amplit == np.max(Amplit))
+    #Time = Time[IndexCentre-TimeAround:IndexCentre+TimeAround]
+    #Amplit = Amplit[IndexCentre-TimeAround:IndexCentre+TimeAround]
 
     mpd = np.int(2e-6 * SamplingFreq)
     indexes = detect_peaks(Amplit, mpd=mpd)
@@ -253,6 +258,44 @@ def process_profile_PS3(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample)
 
     #plt.plot(Time[indexes],Amplit[indexes],'.r')
     #plt.show()
+
+    Amplit_p = Amplit[indexes]
+    Time_p = Time[indexes]
+
+    Averaging_Window = 5
+    Amplit_p = np.convolve(Amplit_p, np.ones((Averaging_Window,)) / Averaging_Window, mode='valid')
+    Time_p = np.convolve(Time_p, np.ones((Averaging_Window,)) / Averaging_Window, mode='valid')
+
+    return [Time_p, Amplit_p]
+
+# Trimm the data, Band Pass and Peak Detection
+def process_profile_PS4(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample):
+    High = 10e6
+    Low = 2e6
+
+    Samples = Amplit.size
+
+    Time =TimeStart + 1e3 * (np.arange(0, Samples, 1) / SamplingFreq)
+    Amplit =butter_bandpass_filter(Amplit,Low, High, SamplingFreq, order=1)
+
+    # Trimm the vectors around centre
+    TimeAround = 4e-3*SamplingFreq
+    SamplesLeft = np.int(TimeAround)
+    SamplesRight= SamplesLeft
+
+    IndexCentre = np.where(Amplit == np.max(Amplit))[0][0]
+
+    if IndexCentre + TimeAround > Samples:
+        SamplesRight = Samples - IndexCentre - 1
+
+    if IndexCentre - TimeAround <0:
+        SamplesLeft = IndexCentre - 1
+
+    Time = Time[IndexCentre-SamplesLeft:IndexCentre+SamplesRight]
+    Amplit = Amplit[IndexCentre-SamplesLeft:IndexCentre+SamplesRight]
+
+    mpd = np.int(2e-6 * SamplingFreq)
+    indexes = detect_peaks(Amplit, mpd=mpd)
 
     Amplit_p = Amplit[indexes]
     Time_p = Time[indexes]
@@ -289,14 +332,30 @@ def process_profile_PSB(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample)
 def process_profile_SPS(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample):
 
     High = 80e6
-    Low = 1e6
+    Low = 40e6
 
     Time = TimeStart + 1e3*(np.arange(0,Amplit.size,1) / SamplingFreq)
-    Amplit = butter_bandpass_filter(data=Amplit,lowcut=Low, highcut=High, fs=SamplingFreq, order=2)
 
+    # Trimm the vectors around centre
+    Samples = Amplit.size
+    TimeAround = 1e-3 * SamplingFreq
+    TimeAround = np.int(TimeAround)
+    IndexCentre = np.where(Amplit == np.max(Amplit))[0][0]
+    if IndexCentre + TimeAround > Samples:
+        TimeAround = Samples - IndexCentre - 1
+
+    if IndexCentre - TimeAround < 0:
+        TimeAround = IndexCentre - 1
+
+    Time = Time[IndexCentre - TimeAround:IndexCentre + TimeAround]
+    Amplit = Amplit[IndexCentre - TimeAround:IndexCentre + TimeAround]
+    # Finish Trimming profiles
+
+    Amplit = butter_bandpass_filter(data=Amplit,lowcut=Low, highcut=High, fs=SamplingFreq, order=2)
     Amplit[Amplit<0] = 0
 
     mpd = np.int(22.5e-6 * SamplingFreq)
+    #mpd = np.int(25e-9 * SamplingFreq)
 
     indexes = detect_peaks(Amplit, mpd=mpd)
 

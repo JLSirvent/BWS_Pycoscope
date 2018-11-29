@@ -66,7 +66,8 @@ class DataScan_Processed:
 
 
     def process_data(self,data_scan,configuration):
-
+        # Start timer after trigger is received
+        #t = time.time()
         try:
             P = ops_processing.process_position(data_scan.PS_PSA_IN, configuration, data_scan.PS_Fs,
                                                 1e-3*data_scan.PS_TimesStart[0], return_processing=True, INOUT='IN')
@@ -99,6 +100,9 @@ class DataScan_Processed:
         except:
             print('Error processing PS_PSB_OUT')
 
+        # Print timer value to check how long data recovery,  storage and plotting (if selected) need
+        #elapsed = time.time() - t
+        #print('Acquisisitoin elapsed time: ' + str(elapsed) + 'sec.')
 
         for i in range(0,2):
 
@@ -128,42 +132,60 @@ class DataScan_Processed:
                 if c == 3:
                     PMT = PMTD
 
-                try:
 
-                    Procesed_Profile = utils.process_profile_PS3(PMT, 1.0*data_scan.PMT_Fs,
-                                                                        1.0*TimeStart,
-                                                                        configuration.pmt_filterfreq_profile,
-                                                                        configuration.pmt_downsample_profile)
 
-                    I_max = 1e3*(abs(np.max(PMT) - np.min(PMT))/50) / 10                 # in uA accounting for amplif
-                    Q_tot = 1e6*(abs(np.sum(PMT - np.min(PMT)))/50) * (1/data_scan.PMT_Fs) / 10        # in nC accounting for amplif
+                Procesed_Profile = utils.process_profile_PS4(PMT, 1.0*data_scan.PMT_Fs,
+                                                                    1.0*TimeStart,
+                                                                    configuration.pmt_filterfreq_profile,
+                                                                    configuration.pmt_downsample_profile)
 
-                    if i == 0:
-                        self.PMT_IN[c] = Procesed_Profile
-                        self.PMT_IN_Imax[c] = I_max
-                        self.PMT_IN_Qtot[c] = Q_tot
 
-                    if i == 1:
-                        self.PMT_OUT[c] = Procesed_Profile
-                        self.PMT_OUT_Imax[c] = I_max
-                        self.PMT_OUT_Qtot[c] = Q_tot
-                except:
-                    print('Error Processing CH' + str(c + 1))
+                I_max = 1e3*(abs(np.max(PMT) - np.min(PMT))/50) / 10                 # in uA accounting for amplif
+                Q_tot = 1e6*(abs(np.sum(PMT - np.min(PMT)))/50) * (1/data_scan.PMT_Fs) / 10        # in nC accounting for amplif
+
+                if i == 0:
+                    self.PMT_IN[c] = Procesed_Profile
+                    self.PMT_IN_Imax[c] = I_max
+                    self.PMT_IN_Qtot[c] = Q_tot
+
+                if i == 1:
+                    self.PMT_OUT[c] = Procesed_Profile
+                    self.PMT_OUT_Imax[c] = I_max
+                    self.PMT_OUT_Qtot[c] = Q_tot
+                #except:
+                #    print('Error Processing CH' + str(c + 1))
+
 
                 try:
 
                     self.PS_POSA_IN_Proj[c] = utils.resample(self.PS_POSA_IN,self.PMT_IN[c])
                     self.PS_POSA_OUT_Proj[c] = utils.resample(self.PS_POSA_OUT,self.PMT_OUT[c])
 
-                    self.PS_POSA_IN_Proj[c] = utils.do_projection(Fork_Length=configuration.calib_fork_length,
+
+
+                    self.PS_POSA_IN_Proj[c][1] = utils.do_projection(Fork_Length=configuration.calib_fork_length,
                                                                   Rotation_Offset=configuration.calib_rotation_offset,
                                                                   Angle_Correction=configuration.calib_fork_phase,
-                                                                  Angular_Position=self.PS_POSA_IN_Proj[c])
+                                                                  Angular_Position=self.PS_POSA_IN_Proj[c][1])
 
-                    self.PS_POSA_OUT_Proj[c] = utils.do_projection(Fork_Length=configuration.calib_fork_length,
+                    self.PS_POSA_OUT_Proj[c][1] = utils.do_projection(Fork_Length=configuration.calib_fork_length,
                                                                    Rotation_Offset=configuration.calib_rotation_offset,
                                                                    Angle_Correction=configuration.calib_fork_phase,
-                                                                   Angular_Position=self.PS_POSA_OUT_Proj[c])
+                                                                   Angular_Position=self.PS_POSA_OUT_Proj[c][1])
+
+                    # Correction of position with a polinomial fit
+                    fit_pos = np.polyfit(self.PS_POSA_IN_Proj[c][0], self.PS_POSA_IN_Proj[c][1], 5)
+                    fit_fn = np.poly1d(fit_pos)
+                    self.PS_POSA_IN_Proj[c][1] = fit_fn(self.PS_POSA_IN_Proj[c][0])
+
+                    #Res = self.PS_POSA_IN_Proj[c][1] - eval
+                    #speed_real = np.diff(self.PS_POSA_IN_Proj[c][1]) / np.diff(self.PS_POSA_IN_Proj[c][0])
+                    #speed_calc = np.diff(eval) / np.diff(self.PS_POSA_IN_Proj[c][0])
+                    #plt.plot(speed_real, 'b')
+                    #plt.plot(speed_calc, 'r')
+                    #plt.show()
+
+
                 except:
                     print('Error Interpolating')
 

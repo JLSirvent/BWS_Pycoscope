@@ -134,7 +134,7 @@ class DataScan_Processed:
 
 
 
-                Procesed_Profile = utils.process_profile_PS4(PMT, 1.0*data_scan.PMT_Fs,
+                Procesed_Profile = utils.process_profile0(PMT, 1.0*data_scan.PMT_Fs,
                                                                     1.0*TimeStart,
                                                                     configuration.pmt_filterfreq_profile,
                                                                     configuration.pmt_downsample_profile)

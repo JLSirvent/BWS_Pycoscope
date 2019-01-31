@@ -1007,7 +1007,7 @@ def plot_position_summary(configuration, projected = False):
 # MAIN PROGRAM STARTS HERE:
 # Configuration and Data objects
 configuration = Configuration.Configuration()
-configuration.app_datapath = 'G:/Projects/BWS_Calibrations/Tunnel_Tests/2018_10_05_PS_PXBWSRB011_CR000001_QPMT_Tests'
+configuration.app_datapath = 'G:/Projects/BWS_Calibrations/Tunnel_Tests/2018_10_17_PS_PXBWSRB011_CR000001_MD_TOF'
 
 # Make file list from folder content (sorted)
 file_list = utils.mat_list_from_folder_sorted(configuration.app_datapath)

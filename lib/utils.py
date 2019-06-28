@@ -157,14 +157,14 @@ def peakdet(v, delta, x=None):
 
     return array(maxtab), array(mintab)
 
-# Base for All (Emulation of TBT mode) Simply Low pass filters profile and downsample the result
+# Only Low Pass Filter
 def process_profile0(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample):
 
     Time = TimeStart + 1e3*(np.arange(0,Amplit.size,1) / SamplingFreq)
     Amplit = butter_lowpass_filter(Amplit, FilterFreq, SamplingFreq, order=1)
 
-    Amplit = Amplit[50000:]
-    Time = Time[50000:]
+    Amplit = Amplit[10000:]
+    Time = Time[10000:]
 
     Amplit_p = Amplit[::Downsample]
     Time_p = Time[::Downsample]
@@ -172,14 +172,9 @@ def process_profile0(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample):
     return [Time_p, Amplit_p]
 
 
-
-# For PS
+# Low Pass Filter and Peak Detection
 def process_profile_PS(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample):
-    # Peak detection (If many bunches peaks may correspond randomly to any bunch)
     High = 10e6
-
-    #Amplit2 = butter_lowpass_filter(Amplit, 80e6, SamplingFreq, order=1)
-    #indexes =
 
     Time = TimeStart + 1e3*(np.arange(0,Amplit.size,1) / SamplingFreq)
     Amplit = butter_lowpass_filter(Amplit, High, SamplingFreq, order=1)
@@ -191,12 +186,73 @@ def process_profile_PS(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample):
     Amplit_p = Amplit[indexes]
     Time_p = Time[indexes]
 
-    Averaging_Window = 5
-    Amplit_p = np.convolve(Amplit_p, np.ones((Averaging_Window,)) / Averaging_Window, mode='valid')
-    Time_p = np.convolve(Time_p, np.ones((Averaging_Window,)) / Averaging_Window, mode='valid')
+    return [Time_p, Amplit_p]
+
+# Low Pass Filter, Peak Detection and Baseline Recovery Auto mdp
+def process_profile_PS_auto(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample):
+    Low = 20e6
+
+    Amplit_p = []
+    Time_p = []
+
+    Amplit = butter_lowpass_filter(Amplit, Low, SamplingFreq, order=1)
+
+    if len(np.where(Amplit>80)[0])>1000: # Only process if signal higher than certain value
+
+        Time = TimeStart + 1e3 * (np.arange(0, Amplit.size, 1) / SamplingFreq)
+        Th = np.max(Amplit) / 2
+
+        mask1 = (Amplit[:-1] < Th) & (Amplit[1:] > Th)
+        Idx = np.flatnonzero(mask1) + 1
+        Offset = np.int(len(Idx) / 3)
+        Idx = Idx[Offset:-Offset]  # We take only central third
+
+        mpd = np.min(np.diff(Idx))
+        IntegralAround = np.int(mpd / 2)
+
+        indexes = detect_peaks(Amplit, mpd=mpd)
+        indexes = indexes[10:len(indexes) - 10]
+
+        for i in indexes:
+            Baseline_tmp = Amplit[i - IntegralAround]
+            if Baseline_tmp < Amplit[i]:
+                Amplit_p.append(np.sum(Amplit[i - IntegralAround:i + IntegralAround] - Baseline_tmp))
+                Time_p.append(Time[i])
+
+        Time_p = np.asarray(Time_p)
+        Amplit_p = np.asarray(Amplit_p)
+
+        Averaging_Window = 5
+        Amplit_p = np.convolve(Amplit_p, np.ones((Averaging_Window,)) / Averaging_Window, mode='valid')
+        Time_p = np.convolve(Time_p, np.ones((Averaging_Window,)) / Averaging_Window, mode='valid')
+
+    else:
+        Time_p = TimeStart + 1e3 * (np.linspace(0,Amplit.size,100)/SamplingFreq)
+        Amplit_p = np.zeros(100)
+
+    #plt.plot(Time_p,Amplit_p)
+    #plt.show()
 
     return [Time_p, Amplit_p]
 
+
+# Low Pass Filter, Peak Detection and Baseline Recovery
+def process_profile_PS20(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample):
+    High = 10e6
+
+    Time = TimeStart + 1e3*(np.arange(0,Amplit.size,1) / SamplingFreq)
+    Amplit = butter_lowpass_filter(Amplit, High, SamplingFreq, order=1)
+
+    Interval = 1.78e-6
+    mpd = np.int(Interval * SamplingFreq)
+
+    indexes = detect_peaks(Amplit,mpd=mpd)
+    Diff =  np.int((Interval/2) * SamplingFreq)
+
+    Amplit_p = Amplit[indexes] #- Amplit[indexes-Diff]
+    Time_p = Time[indexes]
+
+    return [Time_p, Amplit_p]
 
 def process_profile_PS2(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample):
     # Bunch By Bunch integrals with 4 Bunches on PS
@@ -205,11 +261,12 @@ def process_profile_PS2(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample)
     Time = TimeStart + 1e3 * (np.arange(0, Amplit.size, 1) / SamplingFreq)
     Amplit = butter_lowpass_filter(Amplit, High, SamplingFreq, order=1)
 
-    mpd = np.int(2e-6 * SamplingFreq)
+
+    mpd = np.int(1e-6 * SamplingFreq)
     indexes = detect_peaks(Amplit, mpd=mpd)
 
     #IntegralAround = np.int(1.13e-6 * SamplingFreq)
-    IntegralAround =  np.int(200e-9*SamplingFreq) # Integrals of 200ns
+    IntegralAround =  np.int(300e-9*SamplingFreq) # Integrals of 200ns
     indexes = indexes[10:len(indexes)-10]
 
     #plt.plot(Time,Amplit)
@@ -221,7 +278,7 @@ def process_profile_PS2(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample)
     Baseline = []
     for i in indexes:
         Amplit_p.append(np.sum(Amplit[i-IntegralAround:i+IntegralAround]))
-        Baseline.append(np.sum(Amplit[i-2*IntegralAround:i-IntegralAround]))
+        Baseline.append(np.sum(Amplit[i-(mpd/2):i-(mpd/2)+IntegralAround]))
 
     Amplit_p = np.asarray(Amplit_p) - np.asarray(Baseline)
     #Amplit_p = np.asarray(Amplit_p)
@@ -236,7 +293,7 @@ def process_profile_PS2(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample)
 # Band Pass and Peak Detection
 def process_profile_PS3(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample):
     High = 10e6
-    Low = 2e6
+    Low =2.5e6
 
     Time = TimeStart + 1e3 * (np.arange(0, Amplit.size, 1) / SamplingFreq)
     #plt.plot(Time,Amplit)
@@ -262,9 +319,9 @@ def process_profile_PS3(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample)
     Amplit_p = Amplit[indexes]
     Time_p = Time[indexes]
 
-    Averaging_Window = 5
-    Amplit_p = np.convolve(Amplit_p, np.ones((Averaging_Window,)) / Averaging_Window, mode='valid')
-    Time_p = np.convolve(Time_p, np.ones((Averaging_Window,)) / Averaging_Window, mode='valid')
+    #Averaging_Window = 5
+    #Amplit_p = np.convolve(Amplit_p, np.ones((Averaging_Window,)) / Averaging_Window, mode='valid')
+    #Time_p = np.convolve(Time_p, np.ones((Averaging_Window,)) / Averaging_Window, mode='valid')
 
     return [Time_p, Amplit_p]
 
@@ -370,42 +427,16 @@ def process_profile_SPS(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample)
 
     return [Time_p, Amplit_p]
 
-def process_profile(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample):
-
-    Time = TimeStart + 1e3 * (np.arange(0, Amplit.size, 1) / SamplingFreq)
-    Amplit = butter_lowpass_filter(Amplit, FilterFreq, SamplingFreq, order=1)
-
-    #Amplit_p = Amplit
-    #Time_p = Time
-
-    Amplit_p = Amplit[::Downsample]
-    Time_p = Time[::Downsample]
-
-    return [Time_p, Amplit_p]
-
-def process_profile_TbT(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample):
-    High = 80e6
-
-    Time = TimeStart + 1e3 * (np.arange(0, Amplit.size, 1) / SamplingFreq)
-    Amplit = butter_lowpass_filter(Amplit, High, SamplingFreq, order=1)
-
-    mpd = np.int(1.76e-6 * SamplingFreq)
-
-    Idx_slice = np.arange(0,len(Amplit)- mpd,mpd)
-
-    Amplit_p = []
-    Time_p = []
-
-    for i in range(0,len(Idx_slice)-1):
-        Amplit_p.append(np.sum(Amplit[Idx_slice[i]:Idx_slice[i+1]]))
-        Time_p.append(Time[Idx_slice[i]])
-
-    return [np.asarray(Time_p), np.asarray(Amplit_p)]
-
 
 def do_projection(Fork_Length, Rotation_Offset, Angle_Correction, Angular_Position):
 
     Projection = Rotation_Offset - Fork_Length * np.cos(np.pi - (Angular_Position + Angle_Correction))
+
+    return Projection
+
+def do_projection_poly(fit_poly, Angular_Position):
+    fit_func = np.poly1d(fit_poly)
+    Projection = fit_func(Angular_Position)
 
     return Projection
 

@@ -85,11 +85,9 @@ class plot(mplCanvas.mplCanvas):
                 s_title = 'OUT'
                 ax = ax2
 
-            def gauss(x, *p):
-                a, b, c, d = p
-                y = a * np.exp(-np.power((x - b), 2.) / (2. * c ** 2.)) + d
+            def gauss(x, a, b, c, d):
+                return a * np.exp(-np.power((x - b), 2.) / (2. * c ** 2.)) + d
 
-                return y
             for c in range(0,4):
                 try:
                     _x = np.asarray(x[c][1])
@@ -101,12 +99,13 @@ class plot(mplCanvas.mplCanvas):
                     #_y = _y + Offset*4 - Offset *c
 
                     a = np.max(_y) - np.min(_y)
-                    mean = _x[np.where(_y == np.max(_y))[0]]
+                    mean = _x[np.where(_y == np.max(_y))[0]][0]
                     sigma = 1
                     o = np.min(_y)
 
                     try:
-                        popt, pcov = curve_fit(gauss, _x, _y, p0=[a, mean, sigma, o])
+
+                        popt, pcov = curve_fit(gauss, _x, _y, p0=[a,mean,sigma,o])
                         fit_y = gauss(_x, *popt)
 
                         # Goodness of FIT
@@ -120,18 +119,16 @@ class plot(mplCanvas.mplCanvas):
                         baseline = np.min(fit_ynorm)
 
                         rmse = 10000*(_ynorm.size)**-1 * np.sum((_ynorm-fit_ynorm)**2)
-                        # if baseline < 0:
                         X2 = chisquare(f_obs=_ynorm-baseline+0.1, f_exp=fit_ynorm-baseline+0.1)
 
-                        # else:
-                        # X2 = chisquare(f_obs=_ynorm, f_exp=fit_ynorm)
+                        #X2= [0,0]
+                        #rmse = 0
+                        #r_squared = 0
+                        #popt=[0,0,0]
 
-                        #X2[0] = X2[0] * len(_ynorm)**-1
-                        #print(X2[0])
                         ax.plot(_x, _y, color=col[c], label ='CH' + str(c+1) + r' $\sigma$:{0:.2f}'.format(popt[2])+ 'mm' + r' $\mu$:{0:.2f}'.format(popt[1]) + 'mm\nX2:{0:.2f} '.format(X2[0]) + ' RMSE:{:.1f} '.format(rmse) +'R2:{:.3f}'.format(r_squared)+ '\nImax:{0:.1f}'.format(Imax[c])+ 'uA Qtot:{0:.1f}'.format(Qtot[c]) + 'nC')
                         ax.plot(_x,fit_y,color ='black')
-                        #if c==0:
-                        #   ax.set_xlim(popt[1]-6*popt[2],popt[1]+6*popt[2])
+
                     except:
                         ax.plot(_x, _y, color=col[c], label='CH' + str(c + 1) + ' Fit Error' + '\nImax:{0:.1f}'.format(Imax[c])+ 'uA Qtot:{0:.1f}'.format(Qtot[c]) + 'nC')
                 except:

@@ -54,6 +54,8 @@ class Configuration:
         self.calib_fork_length = eval(config.get('CalibrationCurve', 'fork_length'))
         self.calib_rotation_offset = eval(config.get('CalibrationCurve', 'rotation_offset'))
         self.calib_fork_phase = eval(config.get('CalibrationCurve', 'fork_phase'))
+        self.calib_poly_in = eval(config.get('CalibrationCurve', 'poly_in'))
+        self.calib_poly_out = eval(config.get('CalibrationCurve', 'poly_out'))
         self.show_projected = eval(config.get('CalibrationCurve', 'show_projected'))
 
         self.def_pmt_in_start = eval(config.get('Defaults', 'pmt_in_start'))

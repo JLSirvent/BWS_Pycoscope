@@ -1,6 +1,7 @@
 import sys
 sys.path.append('../gui')
 sys.path.append('../lib')
+import numpy.fft as fft
 
 
 import numpy as np
@@ -17,6 +18,12 @@ from matplotlib import colors as colors
 import matplotlib.dates as mdates
 
 from scipy.optimize import curve_fit
+
+
+def gauss(x, *p):
+    a, b, c, d = p
+    y = a * np.exp(-np.power((x - b), 2.) / (2. * c ** 2.)) + d
+    return y
 
 def process_ops_and_save(configuration, file_list):
     angular_position_SA_IN = []
@@ -103,11 +110,6 @@ def process_ops_and_save(configuration, file_list):
 
 def process_amplitudes_and_save(configuration, file_list):
 
-    def gauss(x, *p):
-        a, b, c, d = p
-        y = a * np.exp(-np.power((x - b), 2.) / (2. * c ** 2.)) + d
-        return y
-
     InfoData_CycleStamp=[]
     InfoData_TimeStamp=[]
     InfoData_Filter_PRO=[]
@@ -168,7 +170,7 @@ def process_amplitudes_and_save(configuration, file_list):
     data_scan_processed = DataScan_Processed.DataScan_Processed()
 
     cnt = 0
-    total_files= len(file_list)
+    total_files = len(file_list)
 
     plt.ion()
     fig = plt.figure()
@@ -182,169 +184,180 @@ def process_amplitudes_and_save(configuration, file_list):
     ax.append(fig.add_subplot(247))
     ax.append(fig.add_subplot(248))
 
+
+
     for single_file in file_list:
-        # try:
-        print("Completed:{}%".format(100*cnt/total_files)+ " File: " + single_file.split('\\')[-1])
+        if ((cnt >= 0) & (cnt<=26))|((cnt >=80) & (cnt <= 123)):
+            print(cnt)
+            # try:
+            print("Completed:{}%".format(100*cnt/total_files)+ " File: " + single_file.split('\\')[-1])
 
-        data_scan.load_data_v2(single_file)
+            data_scan.load_data_v2(single_file)
 
-        data_scan_processed.process_data(data_scan, configuration)
+            print(data_scan.PS_TimesStart[1])
 
-        # Concatenate InfoData
-        InfoData_CycleStamp.append(single_file.split('\\')[-1])
-        #InfoData_CycleStamp.append(data_scan.InfoData_CycleStamp)
-        InfoData_TimeStamp.append(data_scan.InfoData_TimeStamp)
-        InfoData_Filter_PRO.append(data_scan.InfoData_Filter_PRO)
-        InfoData_HV.append(data_scan.InfoData_HV)
-        InfoData_CycleName.append(data_scan.InfoData_CycleName)
-        InfoData_AcqDelay.append(data_scan.InfoData_AcqDelay)
-
-        # Get position Data
-        Positions_A_IN_X.append(data_scan_processed.PS_POSA_IN[0])
-        Positions_B_IN_X.append(data_scan_processed.PS_POSB_IN[0])
-        Positions_A_OUT_X.append(data_scan_processed.PS_POSA_OUT[0])
-        Positions_B_OUT_X.append(data_scan_processed.PS_POSB_OUT[0])
-
-        Positions_A_IN_Y.append(data_scan_processed.PS_POSA_IN[1])
-        Positions_B_IN_Y.append(data_scan_processed.PS_POSB_IN[1])
-        Positions_A_OUT_Y.append(data_scan_processed.PS_POSA_OUT[1])
-        Positions_B_OUT_Y.append(data_scan_processed.PS_POSB_OUT[1])
-
-        # Get Profiles Data
-        Profiles_IN_A.append(np.array(100*data_scan_processed.PMT_IN[0][1]))
-        Profiles_IN_B.append(np.array(100*data_scan_processed.PMT_IN[1][1]))
-        Profiles_IN_C.append(np.array(100*data_scan_processed.PMT_IN[2][1]))
-        Profiles_IN_D.append(np.array(100*data_scan_processed.PMT_IN[3][1]))
-
-        Profiles_OUT_A.append(np.array(100*data_scan_processed.PMT_OUT[0][1]))
-        Profiles_OUT_B.append(np.array(100*data_scan_processed.PMT_OUT[1][1]))
-        Profiles_OUT_C.append(np.array(100*data_scan_processed.PMT_OUT[2][1]))
-        Profiles_OUT_D.append(np.array(100*data_scan_processed.PMT_OUT[3][1]))
-        #
-        Positions_IN_A.append(np.array(data_scan_processed.PS_POSA_IN_Proj[0][1]))
-        Positions_OUT_A.append(np.array(data_scan_processed.PS_POSA_OUT_Proj[0][1]))
-
-        Positions_IN_B.append(np.array(data_scan_processed.PS_POSA_IN_Proj[1][1]))
-        Positions_OUT_B.append(np.array(data_scan_processed.PS_POSA_OUT_Proj[1][1]))
-
-        Positions_IN_C.append(np.array(data_scan_processed.PS_POSA_IN_Proj[2][1]))
-        Positions_OUT_C.append(np.array(data_scan_processed.PS_POSA_OUT_Proj[2][1]))
-
-        Positions_IN_D.append(np.array(data_scan_processed.PS_POSA_IN_Proj[3][1]))
-        Positions_OUT_D.append(np.array(data_scan_processed.PS_POSA_OUT_Proj[3][1]))
-
-        # Process Profiles Data
-        Imax_IN.append(data_scan_processed.PMT_IN_Imax[0:4])
-        Imax_OUT.append(data_scan_processed.PMT_OUT_Imax[0:4])
-        Qtot_IN.append(data_scan_processed.PMT_IN_Qtot[0:4])
-        Qtot_OUT.append(data_scan_processed.PMT_OUT_Qtot[0:4])
-
-        #plt.suptitle(data_scan.InfoData_CycleStamp + '\n' + data_scan.InfoData_CycleName + ' F: ' + str(data_scan.InfoData_Filter_PRO) + ' HV: ' + str(np.round(data_scan.InfoData_HV)) +' AcqDly: ' + str(data_scan.InfoData_AcqDelay) + 'ms')
-
-        for s in range(0, 2):
-
-            Sigmas = np.ones(4) * 0
-            Centres = np.ones(4) * 100
-            AmplitG = np.ones(4) * 0
-            GOF_Rsquared = np.ones(4) *0
-            GOF_RMSE = np.ones(4) *0
-            GOF_X2 = np.ones(4) *0
-
-            if s == 0:
-                PMT_Data = data_scan_processed.PMT_IN
-                PMT_Pos = data_scan_processed.PS_POSA_IN_Proj
+            if data_scan.PS_TimesStart[1] > 150:
+                configuration.def_ops_out_ref = 252.6
             else:
-                PMT_Data = data_scan_processed.PMT_OUT
-                PMT_Pos = data_scan_processed.PS_POSA_OUT_Proj
+                configuration.def_ops_out_ref = 152.6
 
-            for c in range(0,4):
-                try:
-                    _y = np.asarray(PMT_Data[c][1])
-                    _x = np.asarray(PMT_Pos[c][1])
+            data_scan_processed.process_data(data_scan, configuration)
 
-                # Evaluate the Fit the data and calculate GOF trough Rsquared
-                    # Starting points
-                    a = 0.5 #np.max(_y) - np.min(_y)
-                    mean = _x[np.where(_y == np.max(_y))[0]]
-                    sigma = 2
-                    o = np.min(_y)
+            # Concatenate InfoData
+            InfoData_CycleStamp.append(single_file.split('\\')[-1])
+            #InfoData_CycleStamp.append(data_scan.InfoData_CycleStamp)
+            InfoData_TimeStamp.append(data_scan.InfoData_TimeStamp)
+            InfoData_Filter_PRO.append(data_scan.InfoData_Filter_PRO)
+            InfoData_HV.append(data_scan.InfoData_HV)
+            InfoData_CycleName.append(data_scan.InfoData_CycleName)
+            InfoData_AcqDelay.append(data_scan.InfoData_AcqDelay)
 
-                    # First Fit
-                    popt, pcov = curve_fit(gauss, _x, _y, p0=[a, mean, sigma, o])
+            # Get position Data
+            Positions_A_IN_X.append(data_scan_processed.PS_POSA_IN[0])
+            Positions_B_IN_X.append(data_scan_processed.PS_POSB_IN[0])
+            Positions_A_OUT_X.append(data_scan_processed.PS_POSA_OUT[0])
+            Positions_B_OUT_X.append(data_scan_processed.PS_POSB_OUT[0])
 
-                    # Trimm for simetric beam profiles
-                    Around = 6.5 * np.abs(popt[2])
-                    s_Left = Around
-                    s_Right = Around
+            Positions_A_IN_Y.append(data_scan_processed.PS_POSA_IN[1])
+            Positions_B_IN_Y.append(data_scan_processed.PS_POSB_IN[1])
+            Positions_A_OUT_Y.append(data_scan_processed.PS_POSA_OUT[1])
+            Positions_B_OUT_Y.append(data_scan_processed.PS_POSB_OUT[1])
 
-                    if popt[1]+Around > np.max(_x):
-                        s_Right = abs(np.max(_x) - popt[1])
+            # Get Profiles Data
+            Profiles_IN_A.append(np.array(100*data_scan_processed.PMT_IN[0][1]))
+            Profiles_IN_B.append(np.array(100*data_scan_processed.PMT_IN[1][1]))
+            Profiles_IN_C.append(np.array(100*data_scan_processed.PMT_IN[2][1]))
+            Profiles_IN_D.append(np.array(100*data_scan_processed.PMT_IN[3][1]))
 
-                    if popt[1]-Around < np.min(_x):
-                        s_Left = np.abs(np.min(_x) + popt[1])
+            Profiles_OUT_A.append(np.array(100*data_scan_processed.PMT_OUT[0][1]))
+            Profiles_OUT_B.append(np.array(100*data_scan_processed.PMT_OUT[1][1]))
+            Profiles_OUT_C.append(np.array(100*data_scan_processed.PMT_OUT[2][1]))
+            Profiles_OUT_D.append(np.array(100*data_scan_processed.PMT_OUT[3][1]))
+            #
+            Positions_IN_A.append(np.array(data_scan_processed.PS_POSA_IN_Proj[0][1]))
+            Positions_OUT_A.append(np.array(data_scan_processed.PS_POSA_OUT_Proj[0][1]))
 
-                    Indexes = np.where((_x>popt[1]-s_Left) & (_x<popt[1]+s_Right))
-                    _y = _y[Indexes]
-                    _x = _x[Indexes]
+            Positions_IN_B.append(np.array(data_scan_processed.PS_POSA_IN_Proj[1][1]))
+            Positions_OUT_B.append(np.array(data_scan_processed.PS_POSA_OUT_Proj[1][1]))
 
-                    # Second Fit  and determine GOF
-                    popt, pcov = curve_fit(gauss, _x, _y, p0=[a, mean, sigma, o])
-                    fit_y = gauss(_x,*popt)
+            Positions_IN_C.append(np.array(data_scan_processed.PS_POSA_IN_Proj[2][1]))
+            Positions_OUT_C.append(np.array(data_scan_processed.PS_POSA_OUT_Proj[2][1]))
 
-                    # Goodness of FIT
-                    ss_res = np.sum((_y - fit_y) ** 2)
-                    ss_tot = np.sum((_y - np.mean(_y)) ** 2)
-                    r_squared = 1 - (ss_res / ss_tot)
+            Positions_IN_D.append(np.array(data_scan_processed.PS_POSA_IN_Proj[3][1]))
+            Positions_OUT_D.append(np.array(data_scan_processed.PS_POSA_OUT_Proj[3][1]))
 
-                    # Normalized data for all channels
-                    _ynorm = _y * np.max(_y) ** -1
-                    fit_ynorm = fit_y * np.max(_y) ** -1
-                    baseline = np.min(fit_ynorm)
+            # Process Profiles Data
+            Imax_IN.append(data_scan_processed.PMT_IN_Imax[0:4])
+            Imax_OUT.append(data_scan_processed.PMT_OUT_Imax[0:4])
+            Qtot_IN.append(data_scan_processed.PMT_IN_Qtot[0:4])
+            Qtot_OUT.append(data_scan_processed.PMT_OUT_Qtot[0:4])
 
-                    rmse = 10000 * (_ynorm.size) ** -1 * np.sum((_ynorm - fit_ynorm) ** 2)
-                    X_2 = chisquare(f_obs=_ynorm - baseline + 0.1, f_exp=fit_ynorm - baseline + 0.1)
+            #plt.suptitle(data_scan.InfoData_CycleStamp + '\n' + data_scan.InfoData_CycleName + ' F: ' + str(data_scan.InfoData_Filter_PRO) + ' HV: ' + str(np.round(data_scan.InfoData_HV)) +' AcqDly: ' + str(data_scan.InfoData_AcqDelay) + 'ms')
 
-                    Sigmas[c] = np.abs(popt[2])
-                    Centres[c] = popt[1]
-                    AmplitG[c] = popt[0] - popt[3]
-                    GOF_Rsquared[c] = r_squared
-                    GOF_RMSE[c] = rmse
-                    GOF_X2[c] = X_2[0]
+            for s in range(0, 2):
 
-                    axp = ax[c + s*4]
-                    axp.clear()
-                    axp.set_title('Profile CH' + str(c))
-                    axp.set_xlabel('Position [mm]')
-                    axp.set_ylabel('Amplitude [a.u]')
-                    axp.grid()
-                    axp.plot(_x,_y, 'b')
-                    axp.plot(_x,fit_y,'r', label = 'Sigma: {:.2f}'.format(Sigmas[c]) + 'mm\nCentre: {:.1f}'.format(Centres[c])+ '\nGOF_X2:{:.2f}'.format(GOF_X2[c]))
-                    axp.legend(loc='upper right')
-                    fig.canvas.draw()
-                    plt.pause(0.01)
+                Sigmas = np.ones(4) * 0
+                Centres = np.ones(4) * 100
+                AmplitG = np.ones(4) * 0
+                GOF_Rsquared = np.ones(4) *0
+                GOF_RMSE = np.ones(4) *0
+                GOF_X2 = np.ones(4) *0
 
-                except:
-                    print('Error fitting CH' + str(c))
+                if s == 0:
+                    PMT_Data = data_scan_processed.PMT_IN
+                    PMT_Pos = data_scan_processed.PS_POSA_IN_Proj
+                else:
+                    PMT_Data = data_scan_processed.PMT_OUT
+                    PMT_Pos = data_scan_processed.PS_POSA_OUT_Proj
 
-            if s == 0:
-                Sigmas_IN.append(Sigmas)
-                Centres_IN.append(Centres)
-                AmplitG_IN.append(AmplitG)
-                GOF_Rsquared_IN.append(GOF_Rsquared)
-                GOF_RMSE_IN.append(GOF_RMSE)
-                GOF_X2_IN.append(GOF_X2)
-            else:
-                Sigmas_OUT.append(Sigmas)
-                Centres_OUT.append(Centres)
-                AmplitG_OUT.append(AmplitG)
-                GOF_Rsquared_OUT.append(GOF_Rsquared)
-                GOF_RMSE_OUT.append(GOF_RMSE)
-                GOF_X2_OUT.append(GOF_X2)
+                for c in range(1,2):
+                    try:
+                        _y = np.asarray(PMT_Data[c][1])
+                        _x = np.asarray(PMT_Pos[c][1])
+
+                        axp = ax[c + s * 4]
+                        axp.clear()
+                        axp.set_title('Profile CH' + str(c))
+                        axp.set_xlabel('Position [mm]')
+                        axp.set_ylabel('Amplitude [a.u]')
+                        axp.grid()
+                        axp.plot(_x,_y, 'b')
+
+                    # Evaluate the Fit the data and calculate GOF trough Rsquared
+                        # Starting points
+                        a = np.max(_y) - np.min(_y)
+                        mean = _x[np.where(_y == np.max(_y))[0]][0]
+                        sigma = 2
+                        o = np.min(_y)
+
+                        # First Fit
+                        popt, pcov = curve_fit(gauss, _x, _y, p0=[a, mean, sigma, o])
+
+                        # Trimm for simetric beam profiles
+                        Around = 6.5 * np.abs(popt[2])
+                        s_Left = Around
+                        s_Right = Around
+
+                        if popt[1]+Around > np.max(_x):
+                            s_Right = abs(np.max(_x) - popt[1])
+
+                        if popt[1]-Around < np.min(_x):
+                            s_Left = np.abs(np.min(_x) + popt[1])
+
+                        Indexes = np.where((_x>popt[1]-s_Left) & (_x<popt[1]+s_Right))
+                        _y = _y[Indexes]
+                        _x = _x[Indexes]
+
+                        # Second Fit  and determine GOF
+                        popt, pcov = curve_fit(gauss, _x, _y, p0=[a, mean, sigma, o])
+                        fit_y = gauss(_x,*popt)
+
+                        # Goodness of FIT
+                        ss_res = np.sum((_y - fit_y) ** 2)
+                        ss_tot = np.sum((_y - np.mean(_y)) ** 2)
+                        r_squared = 1 - (ss_res / ss_tot)
+
+                        # Normalized data for all channels
+                        _ynorm = _y * np.max(_y) ** -1
+                        fit_ynorm = fit_y * np.max(_y) ** -1
+                        baseline = np.min(fit_ynorm)
+
+                        rmse = 10000 * (_ynorm.size) ** -1 * np.sum((_ynorm - fit_ynorm) ** 2)
+                        X_2 = chisquare(f_obs=_ynorm - baseline + 0.1, f_exp=fit_ynorm - baseline + 0.1)
+
+                        Sigmas[c] = np.abs(popt[2])
+                        Centres[c] = popt[1]
+                        AmplitG[c] = popt[0] - popt[3]
+                        GOF_Rsquared[c] = r_squared
+                        GOF_RMSE[c] = rmse
+                        GOF_X2[c] = X_2[0]
+
+                        axp.plot(_x,fit_y,'r', label = 'Sigma: {:.2f}'.format(Sigmas[c]) + 'mm\nCentre: {:.1f}'.format(Centres[c])+ '\nGOF_X2:{:.2f}'.format(GOF_X2[c]))
+                        axp.legend(loc='upper right')
+                        fig.canvas.draw()
+                        plt.pause(0.01)
+
+                    except:
+                        print('Error fitting CH' + str(c))
+
+                if s == 0:
+                    Sigmas_IN.append(Sigmas)
+                    Centres_IN.append(Centres)
+                    AmplitG_IN.append(AmplitG)
+                    GOF_Rsquared_IN.append(GOF_Rsquared)
+                    GOF_RMSE_IN.append(GOF_RMSE)
+                    GOF_X2_IN.append(GOF_X2)
+                else:
+                    Sigmas_OUT.append(Sigmas)
+                    Centres_OUT.append(Centres)
+                    AmplitG_OUT.append(AmplitG)
+                    GOF_Rsquared_OUT.append(GOF_Rsquared)
+                    GOF_RMSE_OUT.append(GOF_RMSE)
+                    GOF_X2_OUT.append(GOF_X2)
 
         cnt = cnt + 1
         #if cnt == 10:
         #   break
-
     sio.savemat(configuration.app_datapath + '/Processed/Summary_Processed.mat',
                 {'InfoData_CycleStamp': InfoData_CycleStamp,
                  'InfoData_TimeStamp': InfoData_TimeStamp,
@@ -382,6 +395,243 @@ def process_amplitudes_and_save(configuration, file_list):
                  'GOF_Rsquared_OUT': GOF_Rsquared_OUT
                  },
                   do_compression = True)
+
+def process_single_file(configuration, file, channel,process):
+
+    data_scan = DataScan.DataScan()
+    data_scan.load_data_v2(file)
+
+    #data_scan_processed = DataScan_Processed.DataScan_Processed()
+    #data_scan_processed.process_data(data_scan, configuration)
+
+    fig2=plt.figure()
+    ax2 = []
+    ax2.append(fig2.add_subplot(121))
+    ax2.append(fig2.add_subplot(122))
+
+    if channel == 0:
+        Y_IN = data_scan.PMT_PMTA_IN
+        Y_OUT = data_scan.PMT_PMTA_OUT
+    if channel == 1:
+        Y_IN = data_scan.PMT_PMTB_IN
+        Y_OUT = data_scan.PMT_PMTB_OUT
+    if channel == 2:
+        Y_IN = data_scan.PMT_PMTC_IN
+        Y_OUT = data_scan.PMT_PMTC_OUT
+    if channel == 3:
+        Y_IN = -data_scan.PMT_PMTD_IN
+        Y_OUT = -data_scan.PMT_PMTD_OUT
+
+    SamplingFreq = data_scan.PMT_Fs
+    Tstamp = data_scan.InfoData_CycleName
+
+    Amplit = Y_IN
+    Time = 1e3*(np.arange(0, Amplit.size, 1) / SamplingFreq)
+
+    Cut = 6
+
+    # Raw signal plotting
+
+    ax2[0].grid()
+    ax2[0].set_xlabel('Time [ms]')
+    ax2[0].set_ylabel('Amplitude [a.u]')
+    ax2[0].set_title('Raw Data')
+
+    ax2[1].set_xlabel('Time[ms]')
+    ax2[1].set_ylabel('Amplitude [a.u]')
+    ax2[1].set_title('Processed Profile')
+    ax2[1].grid()
+
+    ax2[0].set_xlim(-Cut,Cut)
+    ax2[1].set_xlim(-Cut,Cut)
+
+    #Processed Signal Plotting
+    x,y = methodA2(Amplit,SamplingFreq,ax2[0],Tstamp)
+
+    a = np.max(y)
+    mean = 0
+    sigma = 0.10
+    o = 0#np.min(y)
+    popt, pcov = curve_fit(gauss, x, y, p0=[a, mean, sigma, o])
+    fit_y = gauss(x, *popt)
+
+    Sigmas = np.abs(popt[2])
+    Centres = popt[1]
+
+    ax2[1].plot(x,y, label ='Data')
+    ax2[1].plot(x, fit_y, 'r', label='Gauss Fit\nSigma: {:.2f}'.format(Sigmas) + '\nCentre: {:.2f}'.format(Centres))
+    ax2[1].plot(x, y - fit_y, label = 'Residuals')
+    ax2[1].legend()
+    ax2[0].plot(Time, Amplit)
+    plt.show()
+
+# Integrals around peaks and baseline substraction
+def methodA(Amplit,SamplingFreq,ax,Tstamp):
+
+    Low = 30e6
+    Amplit = utils.butter_lowpass_filter(Amplit, Low, SamplingFreq, order=1)
+
+    Time = 1e3 * (np.arange(0, Amplit.size, 1) / SamplingFreq)
+
+    mpd = np.int(200e-9 * SamplingFreq)
+    indexes = utils.detect_peaks(Amplit, mpd=mpd)
+
+    # IntegralAround = np.int(1.13e-6 * SamplingFreq)
+    IntegralAround = np.int(150e-9 * SamplingFreq)  # Integrals of 200ns
+    indexes = indexes[10:len(indexes) - 10]
+
+    Amplit_p = []
+    Baseline = []
+    Time_p = Time[indexes]
+
+    for i in indexes:
+        Baseline_tmp  = Amplit[i - IntegralAround]
+        #Baseline.append(Baseline_tmp)
+        Amplit_p.append(np.sum(Amplit[i - IntegralAround:i + IntegralAround]-Baseline_tmp))
+        #Baseline.append(np.sum(Amplit[i - (3 * IntegralAround):i - (1*IntegralAround)]))
+
+    Vector = np.asarray(Amplit_p)#-np.asarray(Baseline)
+
+    plt.plot(Time,Amplit)
+    plt.plot(Time[indexes],Amplit[indexes],'.r')
+    plt.plot(Time[indexes-IntegralAround],Amplit[indexes-IntegralAround],'.b')
+    plt.plot(Time[indexes],Amplit[indexes]-Amplit[indexes-IntegralAround],'.k')
+
+
+    # plt.plot(Time_p,Baseline)
+    # plt.plot(Time_p,Vector)
+    plt.show()
+
+    #Amplit_p = np.asarray(Amplit_p) - np.asarray(Baseline)
+
+    return Time_p, Amplit_p
+
+# Integrals around peaks and baseline substraction (Auto)
+def methodA2(Amplit,SamplingFreq,ax,Tstamp):
+
+    Low = 20e6
+    Amplit = utils.butter_lowpass_filter(Amplit, Low, SamplingFreq, order=1)
+    Time = 1e3 * (np.arange(0, Amplit.size, 1) / SamplingFreq)
+    Th = np.max(Amplit)/2
+
+    mask1 = (Amplit[:-1] < Th) & (Amplit[1:] > Th)
+    Idx = np.flatnonzero(mask1) + 1
+    Offset = np.int(len(Idx)/3)
+    Idx = Idx[Offset:-Offset] # We take only central third
+
+    mpd = np.min(np.diff(Idx))
+    IntegralAround = np.int(mpd/2)
+
+    indexes = utils.detect_peaks(Amplit, mpd=mpd)
+    indexes = indexes[10:len(indexes) - 10]
+
+    Amplit_p = []
+    Baseline = []
+    Time_p = []
+
+    for i in indexes:
+        Baseline_tmp = Amplit[i - IntegralAround]
+        if Baseline_tmp<Amplit[i]:
+            Amplit_p.append(np.sum(Amplit[i - IntegralAround:i + IntegralAround]-Baseline_tmp))
+            Time_p.append(Time[i])
+
+    # plt.plot(Time,Amplit,'b')
+    # plt.plot(Time[indexes],Amplit[indexes],'.r')
+    # plt.plot(Time[indexes-IntegralAround],Amplit[indexes-IntegralAround],'.g')
+    # plt.plot(Time[indexes], Amplit[indexes]-Amplit[indexes - IntegralAround],'k')
+    # plt.show()
+    return Time_p, Amplit_p
+
+# BandPass Filtering and peak detection
+def methodB(Amplit,SamplingFreq,ax,Tstamp):
+    High = 10e6
+    Low = 1e6
+
+    Time =  1e3 * (np.arange(0, Amplit.size, 1) / SamplingFreq)
+    Amplit = utils.butter_bandpass_filter(Amplit,Low, High, SamplingFreq, order=1)
+
+    ax.plot(Time,Amplit)
+
+    # Trimm the vectors around centre
+    #TimeAround = np.int(2e3/SamplingFreq)
+    #IndexCentre = np.where(Amplit == np.max(Amplit))
+    #Time = Time[IndexCentre-TimeAround:IndexCentre+TimeAround]
+    #Amplit = Amplit[IndexCentre-TimeAround:IndexCentre+TimeAround]
+
+    mpd = np.int(2e-6 * SamplingFreq)
+    #mpd = np.int(200e-9 * SamplingFreq)
+
+    indexes = utils.detect_peaks(Amplit, mpd=mpd)
+
+    #IntegralAround = np.int(1.13e-6 * SamplingFreq)
+    #IntegralAround =  np.int(100e-9*SamplingFreq)  Integrals of 200ns
+    #indexes = indexes[10:len(indexes)-10]
+
+    Amplit_p = Amplit[indexes]
+    Time_p = Time[indexes]
+    #ax.plot(Time_p, Amplit_p, '.r', label = Tstamp)
+
+    #Averaging_Window = 5
+    #Amplit_p = np.convolve(Amplit_p, np.ones((Averaging_Window,)) / Averaging_Window, mode='valid')
+    #Time_p = np.convolve(Time_p, np.ones((Averaging_Window,)) / Averaging_Window, mode='valid')
+    return Time_p, Amplit_p
+
+# Only Low Pass Filter
+def methodC(Amplit,SamplingFreq,ax,Tstamp):
+    Low = 5e3
+    Dec = 100
+
+    Time =  1e3 * (np.arange(0, Amplit.size, 1) / SamplingFreq)
+    Amplit = utils.butter_lowpass_filter(Amplit,Low,SamplingFreq, order=1)
+
+    Time_p = Time[::Dec]
+    Amplit_p = Amplit[::Dec]
+
+    #Idx = np.where(Amplit_p == np.max(Amplit_p))
+    #print(Time[Idx])
+    #Time_p = Time_p - Time_p[Idx]
+    #Time_p = Time_p - 0.155616
+
+    #ax.plot(Time_p,Amplit_p)
+
+    return Time_p, Amplit_p
+
+# Peak and Valley Detections
+def methodD(Amplit,SamplingFreq,ax,Tstamp):
+    Low = 10e6
+
+    Time =  1e3 * (np.arange(0, Amplit.size, 1) / SamplingFreq)
+    Amplit = utils.butter_lowpass_filter(Amplit,Low,SamplingFreq, order=1)
+
+    mpd = np.int(100e-9 * SamplingFreq)
+    Amplit = Amplit/np.max(Amplit)
+
+    prominence = 0.01
+    maxtab, mintab = utils.peakdet(Amplit,prominence)#, mpd=mpd)
+
+    ax.plot(1e3*maxtab[:,0]/SamplingFreq,maxtab[:,1],'.b')
+    ax.plot(1e3*mintab[:,0]/SamplingFreq,mintab[:,1],'.r')
+
+    #ax.plot(Time, Amplit, 'b')
+    #ax.plot(Time[Idx_Top], Amplit[Idx_Top], '.r')
+    #ax.plot(Time[Idx_Bot], Amplit[Idx_Bot], '.g')
+
+    Top = [maxtab[:,0], maxtab[:,1]]
+    Bot = [mintab[:,0], mintab[:,1]]
+    Bot_R = utils.resample(Bot, Top)
+
+    Amplit_p = Top[1] - Bot_R[1]
+    Time_p = Top[0] * 1e3 / SamplingFreq
+
+    Averaging_Window = 7
+    Amplit_p = np.convolve(Amplit_p, np.ones((Averaging_Window,)) / Averaging_Window, mode='valid')
+    Time_p = np.convolve(Time_p, np.ones((Averaging_Window,)) / Averaging_Window, mode='valid')
+
+    ax.plot(Time_p, Amplit_p, 'k')
+    #Time_p = 0
+    #Amplit_p = 0
+
+    return Time_p, Amplit_p
 
 def process_only_meas_cond(configuration,file_list):
 
@@ -486,7 +736,7 @@ def plot_report(configuration):
     axq = superplot_Q_Sigma.add_subplot(111)
     axq.grid()
     # FilterData
-    CycleStamp=data['InfoData_CycleName']
+    CycleStamp=data['InfoData_CycleStamp']
     print(CycleStamp[:])
     for s in range(0,2):
         if s==0:
@@ -511,8 +761,11 @@ def plot_report(configuration):
             try:
                 Tmp.append(datetime.strptime(TStamp[i],'%Y.%m.%d.%H.%M.%S.%f'))
             except:
-                print('Error Tstamp')
-                Tmp.append(datetime.strptime(TStamp[i-1],'%Y.%m.%d.%H.%M.%S.%f'))
+                try:
+                    print('Error Tstamp')
+                    Tmp.append(datetime.strptime(TStamp[i-1],'%Y.%m.%d.%H.%M.%S.%f'))
+                except:
+                    Tmp.append(datetime.strptime(TStamp[i-1], '%Y-%m-%d %H:%M:%S.%f'))
 
         Tstamp_f=mdates.date2num(Tmp)
 
@@ -561,14 +814,18 @@ def plot_report(configuration):
 
         for c in range(0,2):
 
+            #ax0.plot_date(Tstamp_f[Idx[c]],GOF[Idx[c],c],Col[c], markersize=3, label='CH ' + str(c))
             #ax1.plot_date(Tstamp_f[Idx[c]],1e3*np.abs(Sigmas[Idx[c],c]),Col[c], markersize = 3, label = 'CH '+ str(c))
             #ax2.plot_date(Tstamp_f[Idx[c]],1e3*Centres[Idx[c],c],Col[c], markersize = 3, label = 'CH '+ str(c))
+            #ax0.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
+            #ax1.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
+            #ax2.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
+
             ax0.plot(GOF[Idx[c],c],Col[c], markersize=3, label='CH ' + str(c))
             ax1.plot(1e3 * np.abs(Sigmas[Idx[c], c]), Col[c], markersize=3, label='CH ' + str(c))
             ax2.plot(1e3 * Centres[Idx[c], c], Col[c], markersize=3, label='CH ' + str(c))
 
             axq.plot(QTot[Idx[c],c],1e3 * np.abs(Sigmas[Idx[c], c]),Col[c],markersize = 3)
-
             iq_ax1.plot(Imax[:,c],Col[c],markersize = 3, label = 'CH '+ str(c))
             iq_ax2.plot(Amplit[:,c],Col[c],markersize = 3, label = 'CH '+ str(c))
 
@@ -596,6 +853,7 @@ def plot_report(configuration):
     ax0.grid()
     ax0.set_title('GOF')
     ax0.set_ylabel('RMSE')
+    ax0.legend()
     #ax0.set_xlabel('Scan Number')
     #ax0.set_ylim(0.98, 1.01)
 
@@ -629,7 +887,7 @@ def plot_report(configuration):
 
     plt.show()
 
-def plot_report_position(Configuration, projected = False):
+def plot_report_motion(Configuration, projected = False):
 
     superplot_hist = plt.figure(figsize=[15,9])
     ax_in = superplot_hist.add_subplot(211)
@@ -637,13 +895,18 @@ def plot_report_position(Configuration, projected = False):
     ax_in.set_title('Time at beam chamber crossing IN')
     ax_in.set_ylabel('Time [ms]')
     ax_out = superplot_hist.add_subplot(212)
-    ax_out.set_title('Time at beam chamber crossing out')
+    ax_out.set_title('Time at beam chamber crossing OUT')
     ax_out.set_ylabel('Time [ms]')
     ax_out.set_xlabel('Scan Number')
     ax_out.grid()
 
-    superplot = plt.figure(figsize = [15,9])
+    superplot_speed = plt.figure(figsize=[15,9])
+    sp_in = superplot_speed.add_subplot(111)
+    sp_in.grid()
+    sp_in.set_title('Speed at Beam Crossing')
+    sp_in.set_ylabel('Speed [ms-1]')
 
+    superplot = plt.figure(figsize = [15,9])
     pos_in = superplot.add_subplot(321)
     pos_out = superplot.add_subplot(322)
 
@@ -690,20 +953,30 @@ def plot_report_position(Configuration, projected = False):
     Positions_B_OUT_X = data['Positions_B_OUT'][0]
     Positions_B_OUT_Y = data['Positions_B_OUT'][1]
 
+    Centres_IN = data['Centres_IN']
+    Centres_OUT = data['Centres_OUT']
+
+    Centres_IN = Centres_IN[:,0]
+    Centres_OUT = Centres_OUT[:,0]
+
     Scans  = len(Positions_A_IN_X)
 
     Time_at_zero_IN = []
     Time_at_zero_OUT= []
 
-    for i in range(100,150):#range(0,Scans):
+    Speed_at_beam_crossing_IN = []
+    Speed_at_beam_crossing_OUT = []
+
+    for i in range(0,Scans):
 
         if projected == True:
             Positions_A_IN_Y[i] = utils.do_projection(configuration.calib_fork_length,
                                                    configuration.calib_rotation_offset,
                                                    configuration.calib_fork_phase, Positions_A_IN_Y[i])
+
             try:
-                Idx = np.where(Positions_A_IN_Y[i] < 0)[0][0]
-                Time_at_zero_IN.append(Positions_A_IN_X[i][Idx])
+                Idx_IN = np.where(Positions_A_IN_Y[i] < Centres_IN[i])[0][0]
+                Time_at_zero_IN.append(Positions_A_IN_X[i][Idx_IN])
             except:
                 pass
                 #Time_at_zero_IN.append(0)
@@ -715,8 +988,8 @@ def plot_report_position(Configuration, projected = False):
                                                    configuration.calib_rotation_offset,
                                                    configuration.calib_fork_phase, Positions_A_OUT_Y[i])
             try:
-                Idx = np.where(Positions_A_OUT_Y[i] < 0)[0][0]
-                Time_at_zero_OUT.append(Positions_A_OUT_X[i][Idx])
+                Idx_OUT = np.where(Positions_A_OUT_Y[i] < Centres_OUT[i])[0][0]
+                Time_at_zero_OUT.append(Positions_A_OUT_X[i][Idx_OUT])
             except:
                 pass
                 #Time_at_zero_OUT.append(0)
@@ -729,29 +1002,33 @@ def plot_report_position(Configuration, projected = False):
         pos_out.plot(Positions_A_OUT_X[i],Positions_A_OUT_Y[i])
 
         N = 10
-        try:
-            speed_SA_IN = np.convolve(np.divide(np.diff(Positions_A_IN_Y[i]), np.diff(Positions_A_IN_X[i])), np.ones((N,)) / N, mode='valid')
-            speed_SB_IN = np.convolve(np.divide(np.diff(Positions_B_IN_Y[i]), np.diff(Positions_B_IN_X[i])), np.ones((N,)) / N, mode='valid')
-            speed_SA_OUT = np.convolve(np.divide(np.diff(Positions_A_OUT_Y[i]), np.diff(Positions_A_OUT_X[i])), np.ones((N,)) / N, mode='valid')
-            speed_SB_OUT = np.convolve(np.divide(np.diff(Positions_B_OUT_Y[i]), np.diff(Positions_B_OUT_X[i])), np.ones((N,)) / N, mode='valid')
 
-            # Calculation of Eccentricity
-            P_B_R = utils.resample([Positions_B_IN_X[i], Positions_B_IN_Y[i]],
-                                   [Positions_A_IN_X[i], Positions_A_IN_Y[i]])
-            ceccentricity_IN = 1e6 * np.subtract(Positions_A_IN_Y[i], P_B_R[1]) / 2
+        #try:
+        speed_SA_IN = np.convolve(np.divide(np.diff(Positions_A_IN_Y[i]), np.diff(Positions_A_IN_X[i])), np.ones((N,)) / N, mode='valid')
+        speed_SB_IN = np.convolve(np.divide(np.diff(Positions_B_IN_Y[i]), np.diff(Positions_B_IN_X[i])), np.ones((N,)) / N, mode='valid')
+        speed_SA_OUT = np.convolve(np.divide(np.diff(Positions_A_OUT_Y[i]), np.diff(Positions_A_OUT_X[i])), np.ones((N,)) / N, mode='valid')
+        speed_SB_OUT = np.convolve(np.divide(np.diff(Positions_B_OUT_Y[i]), np.diff(Positions_B_OUT_X[i])), np.ones((N,)) / N, mode='valid')
 
-            P_B_R = utils.resample([Positions_B_OUT_X[i], Positions_B_OUT_Y[i]],
-                                   [Positions_A_OUT_X[i], Positions_A_OUT_Y[i]])
-            ceccentricity_OUT = 1e6 * np.subtract(Positions_A_OUT_Y[i], P_B_R[1]) / 2
+        Speed_at_beam_crossing_IN.append(speed_SA_IN[Idx_IN])
+        Speed_at_beam_crossing_OUT.append(speed_SA_OUT[Idx_OUT])
 
-            speed_in.plot(Positions_A_IN_X[i][0:speed_SA_IN.size],speed_SA_IN)
-            speed_out.plot(Positions_A_OUT_X[i][0:speed_SA_OUT.size],speed_SA_OUT)
+        # Calculation of Eccentricity
+        P_B_R = utils.resample([Positions_B_IN_X[i], Positions_B_IN_Y[i]],
+                               [Positions_A_IN_X[i], Positions_A_IN_Y[i]])
+        ceccentricity_IN = 1e6 * np.subtract(Positions_A_IN_Y[i], P_B_R[1]) / 2
 
-            eccentricity_in.plot(Positions_A_IN_Y[i], ceccentricity_IN)
-            eccentricity_out.plot(Positions_A_OUT_Y[i], ceccentricity_OUT)
+        P_B_R = utils.resample([Positions_B_OUT_X[i], Positions_B_OUT_Y[i]],
+                               [Positions_A_OUT_X[i], Positions_A_OUT_Y[i]])
+        ceccentricity_OUT = 1e6 * np.subtract(Positions_A_OUT_Y[i], P_B_R[1]) / 2
 
-        except:
-            pass
+        speed_in.plot(Positions_A_IN_X[i][0:speed_SA_IN.size],speed_SA_IN)
+        speed_out.plot(Positions_A_OUT_X[i][0:speed_SA_OUT.size],speed_SA_OUT)
+
+        eccentricity_in.plot(Positions_A_IN_Y[i], ceccentricity_IN)
+        eccentricity_out.plot(Positions_A_OUT_Y[i], ceccentricity_OUT)
+
+        #except:
+        #    pass
 
     #print(Time_at_zero_IN)
 
@@ -761,253 +1038,62 @@ def plot_report_position(Configuration, projected = False):
 
     #ax_in.hist(np.asarray(Time_at_zero_IN))
     #ax_out.hist(np.asarray(Time_at_zero_OUT))
+    sp_in.plot(np.abs(Speed_at_beam_crossing_IN),'.b')
+    sp_in.plot(np.abs(Speed_at_beam_crossing_OUT),'.r')
 
 
     #Positions_A_OUT_X[i][0:speed_SA_OUT.size]
     plt.show()
 
-def plot_position_summary(configuration, projected = False):
+def plot_report_profiles(configuration,start,scans,channel):
+    superplot = plt.figure(figsize=[15, 9])
+    ax_in = superplot.add_subplot(121)
+    ax_out = superplot.add_subplot(122)
 
-    superplot = plt.figure(figsize = [15,9])
+    ax_in.grid()
+    ax_in.set_title('Scan IN')
+    ax_in.set_ylabel('Time [ms]')
+    ax_in.set_xlabel('Amplitude [a.u]')
 
-    pos_in = superplot.add_subplot(321)
-    pos_out = superplot.add_subplot(322)
+    ax_out.grid()
+    ax_out.set_title('Scan OUT')
+    ax_out.set_xlabel('Position [mm]')
+    ax_out.set_xlabel('Amplitude [a.u]')
 
-    speed_in = superplot.add_subplot(323,sharex=pos_in)
-    speed_out = superplot.add_subplot(324, sharex=pos_out)
+    filename = configuration.app_datapath + '/Processed/Summary_Processed.mat'
+    data = sio.loadmat(filename, struct_as_record=False, squeeze_me=True)
 
-    eccentricity_in= superplot.add_subplot(325)
-    eccentricity_out = superplot.add_subplot(326)
+    if channel == 0:
+        ProfileIN = data['Profiles_IN_A']
+        ProfileOUT = data['Profiles_OUT_A']
+    if channel == 1:
+        ProfileIN = data['Profiles_IN_B']
+        ProfileOUT = data['Profiles_OUT_B']
+    if channel == 2:
+        ProfileIN = data['Profiles_IN_C']
+        ProfileOUT = data['Profiles_OUT_C']
+    if channel == 3:
+        ProfileIN = data['Profiles_IN_D']
+        ProfileOUT = data['Profiles_OUT_D']
 
-    rdsplot= plt.figure(figsize = [15,9])
+    Offset = 0
 
-    rds_in = rdsplot.add_subplot(211)
-    rds_out = rdsplot.add_subplot(212)
+    for i in np.arange(start, start+scans):
+        dly = data['InfoData_AcqDelay'][i]
+        Tstamp = data['InfoData_CycleName'][i]
+        ax_in.plot(ProfileIN[0][i],Offset + ProfileIN[1][i], label = Tstamp + ' Ctime: {:d}'.format(dly))
+        ax_out.plot(ProfileOUT[0][i],Offset + ProfileOUT[1][i])
+        Offset = Offset + 1000
 
-    driftplot=plt.figure(figsize = [15,9])
-    drift_in = driftplot.add_subplot(121)
-    drift_out = driftplot.add_subplot(122)
-
-    for i in range(0,2):
-
-        Position_Zero = []
-        counter = 0
-        for d in range(0,1):
-
-            if d == 0:
-                #foldername = 'G:\Projects\BWS_Calibrations\Tunnel_Tests/2018_06_07_PS_PXBWSRB011_CR000001_Acquisition_Tests_Without_Beam\Processed'
-                foldername = configuration.app_datapath
-            if d == 1:
-                foldername = 'G:\Projects\BWS_Calibrations\Tunnel_Tests/2018_06_08_PS_PXBWSRB011_CR000001_Acquisition_Tests_With_Beam_LHCINDIV\Processed'
-            if d == 2:
-                foldername = 'G:\Projects\BWS_Calibrations\Tunnel_Tests/2018_06_11_PS_PXBWSRB011_CR000001_Acquisition_Tests_With_Beam_LHCINDIV_LHCPROBE_TOF\Processed'
-            if d == 3:
-                foldername = 'G:\Projects\BWS_Calibrations\Tunnel_Tests/2018_06_13_PS_PXBWSRB011_CR000001_Acquisition_Tests_With_Beam_LHC25_BCMS\Processed'
-
-            if i == 0:
-                filename = foldername + '/Processed_IN.mat'
-                ax_pos = pos_in
-                ax_speed = speed_in
-                ax_eccentricity = eccentricity_in
-                ax_rds = rds_in
-                ax_drift=drift_in
-                s_title = 'IN'
-            else:
-                filename = foldername + '/Processed_OUT.mat'
-                ax_pos = pos_out
-                ax_speed = speed_out
-                ax_eccentricity = eccentricity_out
-                ax_rds = rds_out
-                ax_drift=drift_out
-                s_title = 'OUT'
-
-            fontsize = 10
-
-            if projected == True:
-                ax_pos.set_ylabel('Positon [mm]', fontsize=fontsize)
-                ax_speed.set_ylabel('Speed [m/s]', fontsize=fontsize)
-                ax_eccentricity.set_ylabel('Eccentricity [um]', fontsize=fontsize)
-                ax_eccentricity.set_xlabel('Position[mm]', fontsize=fontsize)
-                ax_drift.set_ylabel('Position at time [mm]')
-                #ax_eccentricity.set_ylim(-200, 200)
-
-            else:
-                ax_pos.set_ylabel('Positon [rad]', fontsize=fontsize)
-                ax_speed.set_ylabel('Speed [rad/s]', fontsize=fontsize)
-                ax_eccentricity.set_ylabel('Eccentricity [urad]', fontsize=fontsize)
-                ax_eccentricity.set_xlabel('Position[rad]', fontsize=fontsize)
-                ax_drift.set_ylabel('Position at time [rad]')
-                ax_eccentricity.set_ylim(-600, 200)
-
-            ax_pos.set_xlabel('Time[ms]', fontsize=fontsize)
-            ax_pos.set_title('Positions '+ s_title, fontsize=fontsize)
-            ax_pos.grid(True, color = '#DBDBDB', alpha = 0.4)
-
-            ax_speed.set_xlabel('Time[ms]', fontsize=fontsize)
-            ax_speed.set_title('Speeds '+ s_title, fontsize=fontsize)
-            ax_speed.grid(True, color = '#DBDBDB', alpha = 0.4)
-
-            ax_eccentricity.set_title('Eccentricities '+ s_title, fontsize=fontsize)
-            ax_eccentricity.grid(True, color = '#DBDBDB', alpha = 0.4)
-
-            ax_rds.set_xlabel('Time[ms]', fontsize=fontsize)
-            ax_rds.set_ylabel('RDS [a.u]', fontsize=fontsize)
-            ax_rds.set_title('Relative Distance Signature ' + s_title, fontsize=fontsize)
-            ax_rds.grid(True, color = '#DBDBDB', alpha = 0.4)
-            ax_rds.axhspan(configuration.ops_relative_distance_correction_prameters[1], configuration.ops_relative_distance_correction_prameters[0], color='black', alpha=0.1)
-            ax_rds.axhspan(configuration.ops_relative_distance_correction_prameters[2], configuration.ops_relative_distance_correction_prameters[1], color='red', alpha=0.1)
-
-            ax_drift.set_xlabel('Scan Number')
-            ax_drift.set_title('Disk drift ' + s_title, fontsize=fontsize)
-            ax_drift.grid(True, color = '#DBDBDB', alpha = 0.4)
-
-            data = sio.loadmat(filename, struct_as_record=False, squeeze_me=True)
-            angular_position_SA = data['angular_position_SA']
-            angular_position_SB = data['angular_position_SB']
-            time_SA = data['time_SA']
-            time_SB = data['time_SB']
-
-            #speed_SA = data['speed_SA']
-            #speed_SB = data['speed_SB']
-            #eccentricity = data['angular_position_SA']
-
-            scans = len(angular_position_SA)
-            values = range(700)
-            jet = cm = plt.get_cmap('jet')
-            cNorm = colors.Normalize(vmin=0, vmax=values[-1])
-            scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=jet)
-            N = 30
-
-
-            for s in range(0,scans):
-                #try:
-                if i == 1:
-                    angular_position_SA[s] = np.pi/2 - angular_position_SA[s]
-                    angular_position_SB[s] = np.pi/2 - angular_position_SB[s]
-                    #eccentricity[s] = -eccentricity[s]
-
-                if projected == True:
-                    angular_position_SA[s] = utils.do_projection(configuration.calib_fork_length,
-                                                              configuration.calib_rotation_offset,
-                                                              configuration.calib_fork_phase, angular_position_SA[s])
-
-                    angular_position_SB[s] = utils.do_projection(configuration.calib_fork_length,
-                                                              configuration.calib_rotation_offset,
-                                                              configuration.calib_fork_phase, angular_position_SB[s])
-
-
-                speed_SA = 1e-3*np.divide(np.diff(angular_position_SA[s]), np.diff(time_SA[s]))
-
-                if projected == True:
-                    if i ==0:
-                        speed_SA = -speed_SA
-                else:
-                    speed_SA = 1e3*speed_SA
-                    if i ==1:
-                        speed_SA = -speed_SA
-
-                # Calculation of Eccentricity
-                P_B_R = utils.resample([time_SB[s],angular_position_SB[s]], [time_SA[s],angular_position_SA[s]])
-                eccentricity = np.subtract(angular_position_SA[s], P_B_R[1]) / 2
-
-                colorVal = scalarMap.to_rgba(values[counter])
-                speed = np.convolve(speed_SA, np.ones((N,)) / N, mode='valid')
-                counter = counter + 1
-
-                ax_pos.plot(time_SA[s],angular_position_SA[s], color=colorVal, linewidth=0.8)
-                ax_speed.plot(time_SA[s][0:speed.size], 1e3*speed, color=colorVal, linewidth=0.8)
-
-                if projected == False:
-                    eccentricity= 1e6*eccentricity
-                else:
-                    eccentricity= 1e3*eccentricity
-
-                ax_eccentricity.plot(angular_position_SA[s],eccentricity, color=colorVal, linewidth=0.8)
-
-                #RDS
-                # offset = 100
-                # DistancesA = np.diff(time_SA[s][offset:time_SA[s].size - 1 - offset])
-                # DistancesB = np.diff(time_SB[s][offset:time_SB[s].size - 1 - offset])
-                #
-                # RDS_A = []
-                # RDS_B = []
-                #
-                # previous_periods = 4
-                #
-                # SSL_A = 0
-                # DSL_A = 0
-                # TSL_A = 0
-                # SSL_B = 0
-                # DSL_B = 0
-                # TSL_B = 0
-                #
-                # if i==0:
-                #     MaxlLengthA = len(np.where(np.asarray(time_SA[s])<40)[0])
-                #     MaxlLengthB = len(np.where(np.asarray(time_SB[s])<40)[0])
-                #
-                # else:
-                #     MaxlLengthA = len(np.where(np.asarray(time_SA[s])<400)[0])
-                #     MaxlLengthB = len(np.where(np.asarray(time_SA[s])<400)[0])
-                #
-                #
-                # for c in np.arange(previous_periods,MaxlLengthA):
-                #     Value = DistancesA[c] / np.mean(DistancesA[c - previous_periods:c - 1])
-                #     RDS_A.append(Value)
-                #
-                #     if (Value > configuration.ops_relative_distance_correction_prameters[0]) and (Value < configuration.ops_relative_distance_correction_prameters[1]):
-                #         SSL_A = SSL_A + 1
-                #     if (Value > configuration.ops_relative_distance_correction_prameters[1]) and (Value < configuration.ops_relative_distance_correction_prameters[2]):
-                #         DSL_A = DSL_A + 1
-                #     if (Value > configuration.ops_relative_distance_correction_prameters[2]):
-                #         TSL_A = TSL_A + 1
-                #
-                # for c in np.arange(previous_periods,MaxlLengthB):
-                #     Value = DistancesB[c] / np.mean(DistancesB[c - previous_periods:c - 1])
-                #     RDS_B.append(Value)
-                #     if (Value > configuration.ops_relative_distance_correction_prameters[0]) and (
-                #         Value < configuration.ops_relative_distance_correction_prameters[1]):
-                #         SSL_B = SSL_B + 1
-                #     if (Value > configuration.ops_relative_distance_correction_prameters[1]) and (
-                #         Value < configuration.ops_relative_distance_correction_prameters[2]):
-                #         DSL_B = DSL_B + 1
-                #     if (Value > configuration.ops_relative_distance_correction_prameters[2]):
-                #         TSL_B = TSL_B + 1
-                #
-                # #RDS_A = np.divide(DistancesA[1:DistancesA.size], DistancesA[0:DistancesA.size - 1])
-                # #RDS_B = np.divide(DistancesB[1:DistancesB.size], DistancesB[0:DistancesB.size - 1])
-                #
-                # ax_rds.plot(time_SA[s][0:len(RDS_A)], RDS_A, '.', color='blue', label = 'Sensor A - Total:' + str(MaxlLengthA) + ' SSL:' + str(SSL_A) + ' DSL:' + str(DSL_A) + ' TSL:' + str(TSL_A))
-                # ax_rds.plot(time_SB[s][0:len(RDS_B)], RDS_B, '.', color='red', label = 'Sensor B - Total:' + str(MaxlLengthB) + ' SSL:' + str(SSL_B) + ' DSL:' + str(DSL_B) + ' TSL:' + str(TSL_B))
-                #     #ax_rds.legend()
-                # #except:
-                # #    pass
-
-
-                # Disk Drift
-
-                TimeIn = 29.6
-                TimeOut = 374.8
-
-                if i==0:
-                    TimeZero = TimeIn
-                else:
-                    TimeZero = TimeOut
-
-                Index = np.where(time_SA[s]>TimeZero)[0][0]
-                Position_Zero.append(angular_position_SA[s][Index])
-
-        ax_drift.plot(Position_Zero,'ob')
-
-                #if s == 6:
-                #break
-
-    superplot.tight_layout()
+    ax_in.legend()
+    ax_out.legend()
     plt.show()
+
 
 # MAIN PROGRAM STARTS HERE:
 # Configuration and Data objects
 configuration = Configuration.Configuration()
-configuration.app_datapath = 'G:/Projects/BWS_Calibrations/Tunnel_Tests/2018_10_17_PS_PXBWSRB011_CR000001_MD_TOF'
+configuration.app_datapath = 'G:/Projects/BWS_Calibrations/Tunnel_Tests/2018_10_19_PS_PXBWSRB011_CR000001_MD_SFTPRO'
 
 # Make file list from folder content (sorted)
 file_list = utils.mat_list_from_folder_sorted(configuration.app_datapath)
@@ -1019,9 +1105,16 @@ file_list = utils.mat_list_from_folder_sorted(configuration.app_datapath)
 # Process position data and save on files
 #process_ops_and_save(configuration, file_list)
 
+# Process PMT Profiles (Single File)
+#file = file_list[95]
+#process_single_file(configuration,file,1,1)
+
 # Process PMT profiles and save on files
 process_amplitudes_and_save(configuration, file_list)
 #plot_report(configuration)
 
-# Plot data analysis
-#plot_report_position(configuration, projected = True)
+# Plot a set of processed profiles
+#plot_report_profiles(configuration,0,20,0)
+
+# Plot motion data analysis
+#plot_report_motion(configuration, projected = True)

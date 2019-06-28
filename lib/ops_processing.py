@@ -36,6 +36,7 @@ import utils
 
 from scipy.stats import norm
 from scipy.optimize import curve_fit
+from scipy.signal import find_peaks
 from scipy.interpolate import interp1d
 
 def process_position(data, configuration, sampling_frequency, StartTime, showplot=False, filename=None, return_processing=False,
@@ -74,19 +75,31 @@ def process_position(data, configuration, sampling_frequency, StartTime, showplo
         data = data - min_data
         data = data / max_data
 
-        maxtab, mintab = utils.peakdet(data, prominence)
+        # *** This is the part that takes most of the time!
+        # Method A:
+        # ---------
+        # maxtab, mintab = utils.peakdet(data, prominence)
+        # false = np.where(mintab[:, 1] > np.mean(maxtab[:, 1]))
+        # mintab = np.delete(mintab, false, 0)
+        #
+        # locs_up = np.array(maxtab)[:, 0]
+        # pck_up = np.array(maxtab)[:, 1]
+        #
+        # locs_dwn = np.array(mintab)[:, 0]
+        # pck_dwn = np.array(mintab)[:, 1]
 
-        false = np.where(mintab[:, 1] > np.mean(maxtab[:, 1]))
-        mintab = np.delete(mintab, false, 0)
+        # Method B: Seems Faster
+        # ----------------------
+        locs_up, _ = find_peaks(data, prominence=prominence)
+        locs_dwn, _ = find_peaks(-data + 1, prominence=prominence)
+        pck_up = data[locs_up]
+        pck_dwn = data[locs_dwn]
 
-        locs_up = np.array(maxtab)[:, 0]
-        pck_up = np.array(maxtab)[:, 1]
-
-        locs_dwn = np.array(mintab)[:, 0]
-        pck_dwn = np.array(mintab)[:, 1]
+        todelete = np.where(pck_dwn > np.mean(pck_up))
+        locs_dwn = np.delete(locs_dwn, todelete, 0)
+        pck_dwn = np.delete(pck_dwn, todelete, 0)
 
         LengthMin = np.minimum(pck_up.size, pck_dwn.size)
-
 
         # Crosing psotion evaluation
         Crosingpos = np.ones((2, LengthMin))

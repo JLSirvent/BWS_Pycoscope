@@ -121,7 +121,7 @@ class DataScan_Processed:
                 PMTD = 1e3 * data_scan.PMT_PMTD_OUT * data_scan.PMT_Factors[3]
                 TimeStart = data_scan.PMT_TimesStart[1]
 
-            for c in range(0,4):
+            for c in range(1,2):
 
                 if c == 0:
                     PMT = PMTA
@@ -133,14 +133,12 @@ class DataScan_Processed:
                     PMT = PMTD
 
 
-
-                Procesed_Profile = utils.process_profile0(PMT, 1.0*data_scan.PMT_Fs,
+                Procesed_Profile = utils.process_profile_PS_auto(PMT, 1.0*data_scan.PMT_Fs,
                                                                     1.0*TimeStart,
                                                                     configuration.pmt_filterfreq_profile,
                                                                     configuration.pmt_downsample_profile)
 
-
-                I_max = 1e3*(abs(np.max(PMT) - np.min(PMT))/50) / 10                 # in uA accounting for amplif
+                I_max = 1e3*(abs(np.max(PMT) - np.min(PMT))/50) / 10                               # in uA accounting for amplif
                 Q_tot = 1e6*(abs(np.sum(PMT - np.min(PMT)))/50) * (1/data_scan.PMT_Fs) / 10        # in nC accounting for amplif
 
                 if i == 0:
@@ -162,21 +160,26 @@ class DataScan_Processed:
                     self.PS_POSA_OUT_Proj[c] = utils.resample(self.PS_POSA_OUT,self.PMT_OUT[c])
 
 
-
-                    self.PS_POSA_IN_Proj[c][1] = utils.do_projection(Fork_Length=configuration.calib_fork_length,
-                                                                  Rotation_Offset=configuration.calib_rotation_offset,
-                                                                  Angle_Correction=configuration.calib_fork_phase,
+                    self.PS_POSA_IN_Proj[c][1] = utils.do_projection_poly(fit_poly=configuration.calib_poly_in,
                                                                   Angular_Position=self.PS_POSA_IN_Proj[c][1])
 
-                    self.PS_POSA_OUT_Proj[c][1] = utils.do_projection(Fork_Length=configuration.calib_fork_length,
-                                                                   Rotation_Offset=configuration.calib_rotation_offset,
-                                                                   Angle_Correction=configuration.calib_fork_phase,
+                    self.PS_POSA_OUT_Proj[c][1] = utils.do_projection_poly(fit_poly=configuration.calib_poly_out,
                                                                    Angular_Position=self.PS_POSA_OUT_Proj[c][1])
 
+                    # self.PS_POSA_IN_Proj[c][1] = utils.do_projection(Fork_Length=configuration.calib_fork_length,
+                    #                                               Rotation_Offset=configuration.calib_rotation_offset,
+                    #                                               Angle_Correction=configuration.calib_fork_phase,
+                    #                                               Angular_Position=self.PS_POSA_IN_Proj[c][1])
+                    #
+                    # self.PS_POSA_OUT_Proj[c][1] = utils.do_projection(Fork_Length=configuration.calib_fork_length,
+                    #                                                Rotation_Offset=configuration.calib_rotation_offset,
+                    #                                                Angle_Correction=configuration.calib_fork_phase,
+                    #                                                Angular_Position=self.PS_POSA_OUT_Proj[c][1])
+
                     # Correction of position with a polinomial fit
-                    fit_pos = np.polyfit(self.PS_POSA_IN_Proj[c][0], self.PS_POSA_IN_Proj[c][1], 5)
-                    fit_fn = np.poly1d(fit_pos)
-                    self.PS_POSA_IN_Proj[c][1] = fit_fn(self.PS_POSA_IN_Proj[c][0])
+                    #fit_pos = np.polyfit(self.PS_POSA_IN_Proj[c][0], self.PS_POSA_IN_Proj[c][1], 5)
+                    #fit_fn = np.poly1d(fit_pos)
+                    #self.PS_POSA_IN_Proj[c][1] = fit_fn(self.PS_POSA_IN_Proj[c][0])
 
                     #Res = self.PS_POSA_IN_Proj[c][1] - eval
                     #speed_real = np.diff(self.PS_POSA_IN_Proj[c][1]) / np.diff(self.PS_POSA_IN_Proj[c][0])

@@ -121,7 +121,7 @@ class DataScan_Processed:
                 PMTD = 1e3 * data_scan.PMT_PMTD_OUT * data_scan.PMT_Factors[3]
                 TimeStart = data_scan.PMT_TimesStart[1]
 
-            for c in range(1,2):
+            for c in range(0,4):
 
                 if c == 0:
                     PMT = PMTA
@@ -133,7 +133,7 @@ class DataScan_Processed:
                     PMT = PMTD
 
 
-                Procesed_Profile = utils.process_profile_PS_auto(PMT, 1.0*data_scan.PMT_Fs,
+                Procesed_Profile = utils.process_profile_PS20(PMT, 1.0*data_scan.PMT_Fs,
                                                                     1.0*TimeStart,
                                                                     configuration.pmt_filterfreq_profile,
                                                                     configuration.pmt_downsample_profile)

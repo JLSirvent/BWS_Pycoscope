@@ -108,6 +108,7 @@ def process_ops_and_save(configuration, file_list):
                  'time_SB': time_SB_OUT},
                 do_compression=True)
 
+# Processes a full measurement campaign and generates the Processed files
 def process_amplitudes_and_save(configuration, file_list):
 
     InfoData_CycleStamp=[]
@@ -187,158 +188,149 @@ def process_amplitudes_and_save(configuration, file_list):
 
 
     for single_file in file_list:
-        if ((cnt >= 0) & (cnt<=26))|((cnt >=80) & (cnt <= 123)):
-            print(cnt)
-            # try:
-            print("Completed:{}%".format(100*cnt/total_files)+ " File: " + single_file.split('\\')[-1])
 
-            data_scan.load_data_v2(single_file)
+        # try:
+        print("Completed:{}%".format(100*cnt/total_files)+ " File: " + single_file.split('\\')[-1])
 
-            print(data_scan.PS_TimesStart[1])
+        data_scan.load_data_v2(single_file)
+        data_scan_processed.process_data(data_scan, configuration)
 
-            if data_scan.PS_TimesStart[1] > 150:
-                configuration.def_ops_out_ref = 252.6
+        # Concatenate InfoData
+        InfoData_CycleStamp.append(single_file.split('\\')[-1])
+        #InfoData_CycleStamp.append(data_scan.InfoData_CycleStamp)
+        InfoData_TimeStamp.append(data_scan.InfoData_TimeStamp)
+        InfoData_Filter_PRO.append(data_scan.InfoData_Filter_PRO)
+        InfoData_HV.append(data_scan.InfoData_HV)
+        InfoData_CycleName.append(data_scan.InfoData_CycleName)
+        InfoData_AcqDelay.append(data_scan.InfoData_AcqDelay)
+
+        # Get position Data
+        Positions_A_IN_X.append(data_scan_processed.PS_POSA_IN[0])
+        Positions_B_IN_X.append(data_scan_processed.PS_POSB_IN[0])
+        Positions_A_OUT_X.append(data_scan_processed.PS_POSA_OUT[0])
+        Positions_B_OUT_X.append(data_scan_processed.PS_POSB_OUT[0])
+
+        Positions_A_IN_Y.append(data_scan_processed.PS_POSA_IN[1])
+        Positions_B_IN_Y.append(data_scan_processed.PS_POSB_IN[1])
+        Positions_A_OUT_Y.append(data_scan_processed.PS_POSA_OUT[1])
+        Positions_B_OUT_Y.append(data_scan_processed.PS_POSB_OUT[1])
+
+        # Get Profiles Data
+        Profiles_IN_A.append(np.array(100*data_scan_processed.PMT_IN[0][1]))
+        Profiles_IN_B.append(np.array(100*data_scan_processed.PMT_IN[1][1]))
+        Profiles_IN_C.append(np.array(100*data_scan_processed.PMT_IN[2][1]))
+        Profiles_IN_D.append(np.array(100*data_scan_processed.PMT_IN[3][1]))
+
+        Profiles_OUT_A.append(np.array(100*data_scan_processed.PMT_OUT[0][1]))
+        Profiles_OUT_B.append(np.array(100*data_scan_processed.PMT_OUT[1][1]))
+        Profiles_OUT_C.append(np.array(100*data_scan_processed.PMT_OUT[2][1]))
+        Profiles_OUT_D.append(np.array(100*data_scan_processed.PMT_OUT[3][1]))
+        #
+        Positions_IN_A.append(np.array(data_scan_processed.PS_POSA_IN_Proj[0][1]))
+        Positions_OUT_A.append(np.array(data_scan_processed.PS_POSA_OUT_Proj[0][1]))
+
+        Positions_IN_B.append(np.array(data_scan_processed.PS_POSA_IN_Proj[1][1]))
+        Positions_OUT_B.append(np.array(data_scan_processed.PS_POSA_OUT_Proj[1][1]))
+
+        Positions_IN_C.append(np.array(data_scan_processed.PS_POSA_IN_Proj[2][1]))
+        Positions_OUT_C.append(np.array(data_scan_processed.PS_POSA_OUT_Proj[2][1]))
+
+        Positions_IN_D.append(np.array(data_scan_processed.PS_POSA_IN_Proj[3][1]))
+        Positions_OUT_D.append(np.array(data_scan_processed.PS_POSA_OUT_Proj[3][1]))
+
+        # Process Profiles Data
+        Imax_IN.append(data_scan_processed.PMT_IN_Imax[0:4])
+        Imax_OUT.append(data_scan_processed.PMT_OUT_Imax[0:4])
+        Qtot_IN.append(data_scan_processed.PMT_IN_Qtot[0:4])
+        Qtot_OUT.append(data_scan_processed.PMT_OUT_Qtot[0:4])
+
+        #plt.suptitle(data_scan.InfoData_CycleStamp + '\n' + data_scan.InfoData_CycleName + ' F: ' + str(data_scan.InfoData_Filter_PRO) + ' HV: ' + str(np.round(data_scan.InfoData_HV)) +' AcqDly: ' + str(data_scan.InfoData_AcqDelay) + 'ms')
+
+        for s in range(0, 2):
+
+            Sigmas = np.ones(4) * 0
+            Centres = np.ones(4) * 100
+            AmplitG = np.ones(4) * 0
+            GOF_Rsquared = np.ones(4) *0
+            GOF_RMSE = np.ones(4) *0
+            GOF_X2 = np.ones(4) *0
+
+            if s == 0:
+                PMT_Data = data_scan_processed.PMT_IN
+                PMT_Pos = data_scan_processed.PS_POSA_IN_Proj
             else:
-                configuration.def_ops_out_ref = 152.6
+                PMT_Data = data_scan_processed.PMT_OUT
+                PMT_Pos = data_scan_processed.PS_POSA_OUT_Proj
 
-            data_scan_processed.process_data(data_scan, configuration)
+            for c in range(0,4):
+                try:
+                    _y = np.asarray(PMT_Data[c][1])
+                    _x = np.asarray(PMT_Pos[c][1])
 
-            # Concatenate InfoData
-            InfoData_CycleStamp.append(single_file.split('\\')[-1])
-            #InfoData_CycleStamp.append(data_scan.InfoData_CycleStamp)
-            InfoData_TimeStamp.append(data_scan.InfoData_TimeStamp)
-            InfoData_Filter_PRO.append(data_scan.InfoData_Filter_PRO)
-            InfoData_HV.append(data_scan.InfoData_HV)
-            InfoData_CycleName.append(data_scan.InfoData_CycleName)
-            InfoData_AcqDelay.append(data_scan.InfoData_AcqDelay)
+                    axp = ax[c + s * 4]
+                    axp.clear()
+                    axp.set_title('Profile CH' + str(c))
+                    axp.set_xlabel('Position [mm]')
+                    axp.set_ylabel('Amplitude [a.u]')
+                    axp.grid()
+                    axp.plot(_x,_y, 'b')
 
-            # Get position Data
-            Positions_A_IN_X.append(data_scan_processed.PS_POSA_IN[0])
-            Positions_B_IN_X.append(data_scan_processed.PS_POSB_IN[0])
-            Positions_A_OUT_X.append(data_scan_processed.PS_POSA_OUT[0])
-            Positions_B_OUT_X.append(data_scan_processed.PS_POSB_OUT[0])
+                # Evaluate the Fit the data and calculate GOF trough Rsquared
+                    # Starting points
+                    a = np.max(_y) - np.min(_y)
+                    mean = _x[np.where(_y == np.max(_y))[0]][0]
+                    sigma = 2
+                    o = np.min(_y)
 
-            Positions_A_IN_Y.append(data_scan_processed.PS_POSA_IN[1])
-            Positions_B_IN_Y.append(data_scan_processed.PS_POSB_IN[1])
-            Positions_A_OUT_Y.append(data_scan_processed.PS_POSA_OUT[1])
-            Positions_B_OUT_Y.append(data_scan_processed.PS_POSB_OUT[1])
+                    # First Fit
+                    popt, pcov = curve_fit(gauss, _x, _y, p0=[a, mean, sigma, o])
 
-            # Get Profiles Data
-            Profiles_IN_A.append(np.array(100*data_scan_processed.PMT_IN[0][1]))
-            Profiles_IN_B.append(np.array(100*data_scan_processed.PMT_IN[1][1]))
-            Profiles_IN_C.append(np.array(100*data_scan_processed.PMT_IN[2][1]))
-            Profiles_IN_D.append(np.array(100*data_scan_processed.PMT_IN[3][1]))
+                    # Trimm for simetric beam profiles
+                    Around = 6.5 * np.abs(popt[2])
+                    s_Left = Around
+                    s_Right = Around
 
-            Profiles_OUT_A.append(np.array(100*data_scan_processed.PMT_OUT[0][1]))
-            Profiles_OUT_B.append(np.array(100*data_scan_processed.PMT_OUT[1][1]))
-            Profiles_OUT_C.append(np.array(100*data_scan_processed.PMT_OUT[2][1]))
-            Profiles_OUT_D.append(np.array(100*data_scan_processed.PMT_OUT[3][1]))
-            #
-            Positions_IN_A.append(np.array(data_scan_processed.PS_POSA_IN_Proj[0][1]))
-            Positions_OUT_A.append(np.array(data_scan_processed.PS_POSA_OUT_Proj[0][1]))
+                    if popt[1]+Around > np.max(_x):
+                        s_Right = abs(np.max(_x) - popt[1])
 
-            Positions_IN_B.append(np.array(data_scan_processed.PS_POSA_IN_Proj[1][1]))
-            Positions_OUT_B.append(np.array(data_scan_processed.PS_POSA_OUT_Proj[1][1]))
+                    if popt[1]-Around < np.min(_x):
+                        s_Left = np.abs(np.min(_x) + popt[1])
 
-            Positions_IN_C.append(np.array(data_scan_processed.PS_POSA_IN_Proj[2][1]))
-            Positions_OUT_C.append(np.array(data_scan_processed.PS_POSA_OUT_Proj[2][1]))
+                    Indexes = np.where((_x>popt[1]-s_Left) & (_x<popt[1]+s_Right))
+                    _y = _y[Indexes]
+                    _x = _x[Indexes]
 
-            Positions_IN_D.append(np.array(data_scan_processed.PS_POSA_IN_Proj[3][1]))
-            Positions_OUT_D.append(np.array(data_scan_processed.PS_POSA_OUT_Proj[3][1]))
+                    # Second Fit  and determine GOF
+                    popt, pcov = curve_fit(gauss, _x, _y, p0=[a, mean, sigma, o])
+                    fit_y = gauss(_x,*popt)
 
-            # Process Profiles Data
-            Imax_IN.append(data_scan_processed.PMT_IN_Imax[0:4])
-            Imax_OUT.append(data_scan_processed.PMT_OUT_Imax[0:4])
-            Qtot_IN.append(data_scan_processed.PMT_IN_Qtot[0:4])
-            Qtot_OUT.append(data_scan_processed.PMT_OUT_Qtot[0:4])
+                    # Goodness of FIT
+                    ss_res = np.sum((_y - fit_y) ** 2)
+                    ss_tot = np.sum((_y - np.mean(_y)) ** 2)
+                    r_squared = 1 - (ss_res / ss_tot)
 
-            #plt.suptitle(data_scan.InfoData_CycleStamp + '\n' + data_scan.InfoData_CycleName + ' F: ' + str(data_scan.InfoData_Filter_PRO) + ' HV: ' + str(np.round(data_scan.InfoData_HV)) +' AcqDly: ' + str(data_scan.InfoData_AcqDelay) + 'ms')
+                    # Normalized data for all channels
+                    _ynorm = _y * np.max(_y) ** -1
+                    fit_ynorm = fit_y * np.max(_y) ** -1
+                    baseline = np.min(fit_ynorm)
 
-            for s in range(0, 2):
+                    rmse = 10000 * (_ynorm.size) ** -1 * np.sum((_ynorm - fit_ynorm) ** 2)
+                    X_2 = chisquare(f_obs=_ynorm - baseline + 0.1, f_exp=fit_ynorm - baseline + 0.1)
 
-                Sigmas = np.ones(4) * 0
-                Centres = np.ones(4) * 100
-                AmplitG = np.ones(4) * 0
-                GOF_Rsquared = np.ones(4) *0
-                GOF_RMSE = np.ones(4) *0
-                GOF_X2 = np.ones(4) *0
+                    Sigmas[c] = np.abs(popt[2])
+                    Centres[c] = popt[1]
+                    AmplitG[c] = popt[0] - popt[3]
+                    GOF_Rsquared[c] = r_squared
+                    GOF_RMSE[c] = rmse
+                    GOF_X2[c] = X_2[0]
 
-                if s == 0:
-                    PMT_Data = data_scan_processed.PMT_IN
-                    PMT_Pos = data_scan_processed.PS_POSA_IN_Proj
-                else:
-                    PMT_Data = data_scan_processed.PMT_OUT
-                    PMT_Pos = data_scan_processed.PS_POSA_OUT_Proj
+                    axp.plot(_x,fit_y,'r', label = 'Sigma: {:.2f}'.format(Sigmas[c]) + 'mm\nCentre: {:.1f}'.format(Centres[c])+ '\nGOF_X2:{:.2f}'.format(GOF_X2[c]))
+                    axp.legend(loc='upper right')
+                    fig.canvas.draw()
+                    plt.pause(0.01)
 
-                for c in range(1,2):
-                    try:
-                        _y = np.asarray(PMT_Data[c][1])
-                        _x = np.asarray(PMT_Pos[c][1])
-
-                        axp = ax[c + s * 4]
-                        axp.clear()
-                        axp.set_title('Profile CH' + str(c))
-                        axp.set_xlabel('Position [mm]')
-                        axp.set_ylabel('Amplitude [a.u]')
-                        axp.grid()
-                        axp.plot(_x,_y, 'b')
-
-                    # Evaluate the Fit the data and calculate GOF trough Rsquared
-                        # Starting points
-                        a = np.max(_y) - np.min(_y)
-                        mean = _x[np.where(_y == np.max(_y))[0]][0]
-                        sigma = 2
-                        o = np.min(_y)
-
-                        # First Fit
-                        popt, pcov = curve_fit(gauss, _x, _y, p0=[a, mean, sigma, o])
-
-                        # Trimm for simetric beam profiles
-                        Around = 6.5 * np.abs(popt[2])
-                        s_Left = Around
-                        s_Right = Around
-
-                        if popt[1]+Around > np.max(_x):
-                            s_Right = abs(np.max(_x) - popt[1])
-
-                        if popt[1]-Around < np.min(_x):
-                            s_Left = np.abs(np.min(_x) + popt[1])
-
-                        Indexes = np.where((_x>popt[1]-s_Left) & (_x<popt[1]+s_Right))
-                        _y = _y[Indexes]
-                        _x = _x[Indexes]
-
-                        # Second Fit  and determine GOF
-                        popt, pcov = curve_fit(gauss, _x, _y, p0=[a, mean, sigma, o])
-                        fit_y = gauss(_x,*popt)
-
-                        # Goodness of FIT
-                        ss_res = np.sum((_y - fit_y) ** 2)
-                        ss_tot = np.sum((_y - np.mean(_y)) ** 2)
-                        r_squared = 1 - (ss_res / ss_tot)
-
-                        # Normalized data for all channels
-                        _ynorm = _y * np.max(_y) ** -1
-                        fit_ynorm = fit_y * np.max(_y) ** -1
-                        baseline = np.min(fit_ynorm)
-
-                        rmse = 10000 * (_ynorm.size) ** -1 * np.sum((_ynorm - fit_ynorm) ** 2)
-                        X_2 = chisquare(f_obs=_ynorm - baseline + 0.1, f_exp=fit_ynorm - baseline + 0.1)
-
-                        Sigmas[c] = np.abs(popt[2])
-                        Centres[c] = popt[1]
-                        AmplitG[c] = popt[0] - popt[3]
-                        GOF_Rsquared[c] = r_squared
-                        GOF_RMSE[c] = rmse
-                        GOF_X2[c] = X_2[0]
-
-                        axp.plot(_x,fit_y,'r', label = 'Sigma: {:.2f}'.format(Sigmas[c]) + 'mm\nCentre: {:.1f}'.format(Centres[c])+ '\nGOF_X2:{:.2f}'.format(GOF_X2[c]))
-                        axp.legend(loc='upper right')
-                        fig.canvas.draw()
-                        plt.pause(0.01)
-
-                    except:
-                        print('Error fitting CH' + str(c))
+                except:
+                    print('Error fitting CH' + str(c))
 
                 if s == 0:
                     Sigmas_IN.append(Sigmas)
@@ -396,7 +388,8 @@ def process_amplitudes_and_save(configuration, file_list):
                  },
                   do_compression = True)
 
-def process_single_file(configuration, file, channel,process):
+# Processes the profile of a file
+def process_single_file(configuration, file, channel):
 
     data_scan = DataScan.DataScan()
     data_scan.load_data_v2(file)
@@ -428,8 +421,6 @@ def process_single_file(configuration, file, channel,process):
     Amplit = Y_IN
     Time = 1e3*(np.arange(0, Amplit.size, 1) / SamplingFreq)
 
-    Cut = 6
-
     # Raw signal plotting
 
     ax2[0].grid()
@@ -442,16 +433,15 @@ def process_single_file(configuration, file, channel,process):
     ax2[1].set_title('Processed Profile')
     ax2[1].grid()
 
-    ax2[0].set_xlim(-Cut,Cut)
-    ax2[1].set_xlim(-Cut,Cut)
-
     #Processed Signal Plotting
-    x,y = methodA2(Amplit,SamplingFreq,ax2[0],Tstamp)
+    x,y = method_Def(Amplit,SamplingFreq,ax2[0],Tstamp)
 
     a = np.max(y)
-    mean = 0
+    Idx = np.where(y==a)[0][0]
+    mean = x[Idx]
     sigma = 0.10
-    o = 0#np.min(y)
+    o = np.min(y)
+
     popt, pcov = curve_fit(gauss, x, y, p0=[a, mean, sigma, o])
     fit_y = gauss(x, *popt)
 
@@ -464,6 +454,27 @@ def process_single_file(configuration, file, channel,process):
     ax2[1].legend()
     ax2[0].plot(Time, Amplit)
     plt.show()
+
+# Different methods to evaluate amplitude processing
+
+# Peaks detection and baseline substraction
+def method_Def(Amplit,SamplingFreq,ax,Tstamp):
+
+    High = 10e6
+
+    Time = 1e3*(np.arange(0,Amplit.size,1) / SamplingFreq)
+    Amplit = utils.butter_lowpass_filter(Amplit, High, SamplingFreq, order=1)
+
+    Interval = 1.78e-6
+    mpd = np.int(Interval * SamplingFreq)
+
+    indexes = utils.detect_peaks(Amplit,mpd=mpd)
+    Diff =  np.int((Interval/2) * SamplingFreq)
+
+    Amplit_p = Amplit[indexes] - Amplit[indexes-Diff]
+    Time_p = Time[indexes]
+
+    return [Time_p, Amplit_p]
 
 # Integrals around peaks and baseline substraction
 def methodA(Amplit,SamplingFreq,ax,Tstamp):
@@ -682,6 +693,7 @@ def process_only_meas_cond(configuration,file_list):
                  },
                  do_compression=True)
 
+# Reports once a processing is finished, it takes the processed files generated
 def plot_only_meas_cond(configuration):
     filename = configuration.app_datapath + '/Processed/Summary_Processed_MeasCond.mat'
     data = sio.loadmat(filename, struct_as_record=False, squeeze_me=True)
@@ -1093,7 +1105,7 @@ def plot_report_profiles(configuration,start,scans,channel):
 # MAIN PROGRAM STARTS HERE:
 # Configuration and Data objects
 configuration = Configuration.Configuration()
-configuration.app_datapath = 'G:/Projects/BWS_Calibrations/Tunnel_Tests/2018_10_19_PS_PXBWSRB011_CR000001_MD_SFTPRO'
+configuration.app_datapath = 'G:/Projects/BWS_Calibrations/Tunnel_Tests/2018_06_08_PS_PXBWSRB011_CR000001_Acquisition_Tests_With_Beam_LHCINDIV'
 
 # Make file list from folder content (sorted)
 file_list = utils.mat_list_from_folder_sorted(configuration.app_datapath)
@@ -1107,7 +1119,7 @@ file_list = utils.mat_list_from_folder_sorted(configuration.app_datapath)
 
 # Process PMT Profiles (Single File)
 #file = file_list[95]
-#process_single_file(configuration,file,1,1)
+#process_single_file(configuration,file,1)
 
 # Process PMT profiles and save on files
 process_amplitudes_and_save(configuration, file_list)

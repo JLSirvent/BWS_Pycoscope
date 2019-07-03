@@ -249,7 +249,7 @@ def process_profile_PS20(Amplit, SamplingFreq, TimeStart, FilterFreq, Downsample
     indexes = detect_peaks(Amplit,mpd=mpd)
     Diff =  np.int((Interval/2) * SamplingFreq)
 
-    Amplit_p = Amplit[indexes] #- Amplit[indexes-Diff]
+    Amplit_p = Amplit[indexes] - Amplit[indexes-Diff]
     Time_p = Time[indexes]
 
     return [Time_p, Amplit_p]
